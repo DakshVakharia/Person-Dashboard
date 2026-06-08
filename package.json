@@ -1,0 +1,20 @@
+{
+  "name": "personal-dashboard",
+  "version": "1.0.0",
+  "description": "Personal assistant dashboard for ambient tablet display",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "node server/index.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs --env production",
+    "pm2:stop": "pm2 stop dashboard",
+    "pm2:restart": "pm2 restart dashboard",
+    "pm2:logs": "pm2 logs dashboard",
+    "setup": "npm install && cd server && npm install && cd ../client && npm install && cd .. && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

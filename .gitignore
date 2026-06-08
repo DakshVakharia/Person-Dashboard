@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Runtime data (SQLite DBs, sessions, uploads)
+server/data/
+server/uploads/
+*.sqlite
+*.db
+*.db-shm
+*.db-wal
+
+# Build artifacts
+client/dist/
+client/dist-ssr/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+
+# Vite temp files
+*.timestamp-*.mjs
+.claude/settings.local.json

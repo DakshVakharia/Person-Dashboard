@@ -1,0 +1,342 @@
+/* ─── Reset ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:           #080810;
+  --bg2:          #0e0e1a;
+  --panel:        rgba(255,255,255,0.03);
+  --panel-hover:  rgba(255,255,255,0.055);
+  --border:       rgba(255,255,255,0.06);
+  --text:         #f1f5f9;
+  --text2:        #8892a4;
+  --text3:        #3d4756;
+  --accent:       #6366f1;
+  --green:        #22c55e;
+  --red:          #ef4444;
+  --yellow:       #ca8a04;
+  --ring-schedule:#3b82f6;
+  --ring-protein: #22c55e;
+  --ring-creatine:#a855f7;
+  --ring-workout: #f97316;
+  --r:            14px;
+  --r-sm:         9px;
+  --shadow:       none;
+}
+
+[data-theme="light"] {
+  --bg:           #f0f2f8;
+  --bg2:          #ffffff;
+  --panel:        rgba(255,255,255,0.85);
+  --panel-hover:  rgba(255,255,255,1);
+  --border:       rgba(0,0,0,0.08);
+  --text:         #0f172a;
+  --text2:        #475569;
+  --text3:        #94a3b8;
+  --accent:       #6366f1;
+  --green:        #16a34a;
+  --red:          #dc2626;
+  --yellow:       #ca8a04;
+  --ring-schedule:#3b82f6;
+  --ring-protein: #16a34a;
+  --ring-creatine:#9333ea;
+  --ring-workout: #ea580c;
+  --shadow:       0 1px 8px rgba(0,0,0,0.08);
+}
+
+html, body, #root {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── Panel ──────────────────────────────────────────────────────────────────── */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 16px; border-radius: 8px; border: none;
+  font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { filter: brightness(1.15); }
+.btn-ghost { background: var(--panel); color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--panel-hover); color: var(--text); }
+.btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 7px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+input, textarea {
+  background: var(--panel-hover); border: 1px solid var(--border);
+  border-radius: var(--r-sm); color: var(--text); font-size: 14px;
+  padding: 9px 13px; outline: none; width: 100%; transition: border-color 0.15s;
+  font-family: inherit;
+}
+input:focus, textarea:focus { border-color: var(--accent); }
+input::placeholder, textarea::placeholder { color: var(--text3); }
+
+/* ─── Landscape Grid ─────────────────────────────────────────────────────────── */
+.dashboard {
+  display: grid;
+  grid-template-columns: 360px 1fr 360px;
+  grid-template-rows: 1fr;
+  height: 100vh;
+  gap: 10px;
+  padding: 10px;
+}
+
+.col-left   { display: flex; flex-direction: column; }
+.col-center { display: flex; flex-direction: column; gap: 10px; }
+.col-right  { display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 10px; }
+
+.center-top   { flex-shrink: 0; }
+.center-rings { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; }
+.center-chat  { height: 300px; flex-shrink: 0; display: flex; flex-direction: column; }
+.right-panel  { overflow: hidden; display: flex; flex-direction: column; padding: 16px 18px; }
+
+/* ─── Clock ──────────────────────────────────────────────────────────────────── */
+.clock-widget { text-align: center; padding: 22px 16px 14px; }
+.clock-time {
+  font-size: 120px; font-weight: 200; letter-spacing: -5px; line-height: 1;
+  color: var(--text); font-variant-numeric: tabular-nums;
+}
+.clock-date { font-size: 22px; color: var(--text2); margin-top: 8px; letter-spacing: 0.3px; }
+
+/* ─── Rings ──────────────────────────────────────────────────────────────────── */
+.rings-legend {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px;
+  padding: 12px 20px 8px; width: 100%;
+}
+.ring-legend-item {
+  display: flex; align-items: center; gap: 10px; font-size: 17px; color: var(--text2);
+}
+.ring-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.ring-legend-item .val { color: var(--text); font-weight: 600; margin-left: auto; font-size: 17px; }
+
+/* ─── Section titles ─────────────────────────────────────────────────────────── */
+.section-title {
+  font-size: 14px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--text2); margin-bottom: 14px; flex-shrink: 0;
+}
+
+/* ─── Calendar ───────────────────────────────────────────────────────────────── */
+.calendar-widget { display: flex; flex-direction: column; padding: 16px 18px; height: 100%; overflow: hidden; position: relative; }
+.calendar-events { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.event-item {
+  display: flex; gap: 12px; padding: 12px 14px;
+  border-radius: 11px; background: var(--panel-hover);
+  border-left: 3px solid var(--accent); align-items: flex-start;
+}
+.event-item.today { border-left-color: var(--ring-workout); }
+.event-time { color: var(--text2); white-space: nowrap; font-size: 15px; min-width: 52px; margin-top: 1px; }
+.event-title { color: var(--text); font-weight: 500; line-height: 1.4; font-size: 16px; }
+.event-day-label {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--text2); padding: 8px 0 5px;
+}
+.no-events { color: var(--text3); font-size: 16px; text-align: center; padding: 24px 0; }
+
+/* ─── Habits checklist ───────────────────────────────────────────────────────── */
+.habit-checklist { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; }
+.habit-check-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--panel); cursor: pointer; transition: all 0.15s;
+  color: var(--text2); text-align: left; width: 100%;
+}
+.habit-check-row:hover { background: var(--panel-hover); }
+.habit-check-row.done { background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.3); color: var(--text); }
+.habit-checkbox {
+  width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+  border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+  color: var(--green); transition: all 0.15s;
+}
+.habit-check-row.done .habit-checkbox { background: rgba(34,197,94,0.2); border-color: var(--green); }
+.habit-check-icon { font-size: 20px; flex-shrink: 0; }
+.habit-check-name { font-size: 17px; font-weight: 500; flex: 1; }
+.habit-check-streak { font-size: 13px; color: var(--yellow); flex-shrink: 0; margin-left: auto; }
+
+/* ─── Meals ──────────────────────────────────────────────────────────────────── */
+.meal-macros { display: flex; gap: 18px; margin-bottom: 12px; flex-shrink: 0; }
+.macro-stat .val { font-size: 28px; font-weight: 600; line-height: 1; }
+.macro-stat .lbl { font-size: 13px; color: var(--text2); margin-top: 4px; }
+.macro-stat.protein .val  { color: var(--ring-protein); }
+.macro-stat.calories .val { color: var(--ring-workout); }
+.macro-stat.carbs .val    { color: var(--accent); }
+.macro-stat.fat .val      { color: var(--yellow); }
+.meal-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 7px; }
+.meal-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: 10px; background: var(--panel-hover); font-size: 16px;
+}
+.meal-item .name { color: var(--text); font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meal-item .macros { color: var(--text2); white-space: nowrap; font-size: 14px; margin: 0 10px; }
+.meal-item .del { color: var(--text3); cursor: pointer; padding: 3px 6px; border-radius: 5px; transition: color 0.12s; font-size: 16px; }
+.meal-item .del:hover { color: var(--red); }
+
+/* ─── Weight ─────────────────────────────────────────────────────────────────── */
+.weight-current { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; flex-shrink: 0; }
+.weight-current .val { font-size: 52px; font-weight: 600; }
+.weight-current .unit { font-size: 20px; color: var(--text2); }
+.weight-current .trend { font-size: 18px; }
+.weight-chart { flex: 1; min-height: 0; }
+
+/* ─── Chat (vertical, in center column) ──────────────────────────────────────── */
+.chat-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 14px 16px; }
+.chat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+.chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 4px; }
+.chat-msg {
+  max-width: 88%; padding: 10px 16px; border-radius: 14px;
+  font-size: 17px; line-height: 1.55; word-break: break-word;
+}
+.chat-msg.user  { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 3px; }
+.chat-msg.model { align-self: flex-start; background: var(--panel-hover); color: var(--text); border-bottom-left-radius: 3px; }
+.chat-msg.system { align-self: center; background: transparent; color: var(--text3); font-size: 14px; font-style: italic; }
+.chat-input-row { display: flex; gap: 8px; margin-top: 10px; align-items: flex-end; flex-shrink: 0; }
+.chat-input-row textarea { resize: none; min-height: 46px; max-height: 100px; font-size: 17px; }
+.chat-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.chat-typing { color: var(--text3); font-size: 16px; font-style: italic; padding: 4px 0; }
+
+/* ─── Supplement Checklist ───────────────────────────────────────────────────── */
+.supplement-checklist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 12px 16px;
+}
+.supplement-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--panel); cursor: pointer; transition: all 0.15s;
+  font-size: 16px; font-weight: 500; color: var(--text2); text-align: left;
+}
+.supplement-item.done {
+  background: rgba(34,197,94,0.08);
+  border-color: rgba(34,197,94,0.35);
+  color: var(--text);
+}
+.supp-check {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--green); flex-shrink: 0;
+  background: transparent;
+}
+.supplement-item.done .supp-check {
+  background: rgba(34,197,94,0.2); border-color: var(--green);
+}
+.supp-icon { font-size: 18px; flex-shrink: 0; }
+.supp-name { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ─── Reminder Overlay ───────────────────────────────────────────────────────── */
+.reminder-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.72); backdrop-filter: blur(10px);
+  animation: fadeIn 0.25s ease;
+}
+.reminder-card {
+  background: var(--bg2); border: 1px solid var(--accent);
+  border-radius: 20px; padding: 32px 44px; text-align: center;
+  max-width: 440px; width: 90%; box-shadow: 0 0 60px rgba(99,102,241,0.2);
+  animation: scaleIn 0.25s ease;
+}
+.reminder-card .icon { font-size: 48px; margin-bottom: 12px; }
+.reminder-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.reminder-card p { color: var(--text2); font-size: 15px; margin-bottom: 24px; }
+.reminder-actions { display: flex; gap: 12px; justify-content: center; }
+
+/* ─── Morning / Evening ──────────────────────────────────────────────────────── */
+.morning-mode, .evening-mode {
+  position: fixed; inset: 0; z-index: 900;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 40px; animation: fadeIn 0.7s ease;
+}
+.morning-mode { background: linear-gradient(135deg,#0f172a,#1e1b4b,#0c0a1e); }
+.evening-mode { background: linear-gradient(135deg,#0a0a0f,#1a0a2e,#0d0d1a); }
+.morning-mode .greeting, .evening-mode .title { font-size: 48px; font-weight: 200; margin-bottom: 8px; }
+.morning-mode .date-str { font-size: 18px; color: var(--text2); margin-bottom: 36px; }
+.morning-mode .intention-card {
+  background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25);
+  border-radius: 16px; padding: 20px 32px; max-width: 600px; margin-bottom: 32px;
+}
+.morning-mode .intention-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 8px; }
+.morning-mode .intention-text { font-size: 20px; font-weight: 500; }
+.ai-text { font-size: 16px; color: var(--text2); max-width: 560px; line-height: 1.75; margin-bottom: 36px; }
+.evening-mode .ai-summary { font-size: 16px; color: var(--text2); max-width: 560px; line-height: 1.75; margin: 18px 0 32px; }
+.intention-input-row { display: flex; gap: 10px; max-width: 480px; width: 100%; }
+.intention-input-row input { font-size: 16px; padding: 13px 16px; }
+
+/* ─── Login ──────────────────────────────────────────────────────────────────── */
+.login-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100vh; gap: 18px;
+}
+.login-screen h1 { font-size: 30px; font-weight: 300; }
+.login-screen p { color: var(--text2); font-size: 15px; }
+.btn-google {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; color: #1f2937; padding: 13px 26px;
+  border-radius: 10px; border: none; font-size: 16px; font-weight: 500; cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3); transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-google:hover { transform: translateY(-1px); box-shadow: 0 5px 20px rgba(0,0,0,0.4); }
+
+/* ─── Portrait / Landscape toggle ───────────────────────────────────────────── */
+@media (orientation: landscape) {
+  .landscape-only { display: grid; }
+  .portrait-only  { display: none; }
+}
+@media (orientation: portrait) {
+  .landscape-only { display: none !important; }
+  .portrait-only  { display: flex; }
+}
+
+/* ─── Portrait layout ────────────────────────────────────────────────────────── */
+.portrait-layout { flex-direction: column; height: 100vh; gap: 8px; padding: 8px; }
+.portrait-top { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex-shrink: 0; }
+.portrait-clock { display: flex; align-items: center; justify-content: center; }
+.portrait-clock .clock-time { font-size: 42px; }
+.portrait-rings { display: flex; align-items: center; justify-content: center; padding: 8px; }
+.portrait-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 12px 14px; min-height: 0; }
+.portrait-tabs { display: flex; gap: 5px; flex-shrink: 0; }
+.portrait-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 9px 4px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--panel); color: var(--text2); cursor: pointer; transition: all 0.15s;
+}
+.portrait-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tab-icon { font-size: 20px; line-height: 1; }
+.tab-label { font-size: 11px; font-weight: 500; }
+
+/* ─── Animations ─────────────────────────────────────────────────────────────── */
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes pulse   { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+.pulse { animation: pulse 2s ease infinite; }
+
+/* ─── Theme Toggle ───────────────────────────────────────────────────────────── */
+.theme-toggle {
+  position: fixed; top: 12px; right: 12px; z-index: 500;
+  width: 52px; height: 28px; border-radius: 14px;
+  background: var(--panel-hover); border: 1px solid var(--border);
+  cursor: pointer; display: flex; align-items: center; padding: 3px;
+  transition: background 0.3s; box-shadow: var(--shadow);
+}
+.theme-toggle-knob {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); display: flex; align-items: center; justify-content: center;
+  font-size: 13px; transition: transform 0.3s ease; flex-shrink: 0;
+}
+[data-theme="light"] .theme-toggle-knob { transform: translateX(24px); }
+
+/* ─── Loading ────────────────────────────────────────────────────────────────── */
+.loading { display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 14px; color: var(--text3); }
