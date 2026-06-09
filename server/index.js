@@ -115,8 +115,30 @@ app.use('/api/workouts', workoutsRoutes);
 // fetch()/WebSocket calls share the session cookie. Takes priority over the
 // old React build's catch-all below.
 const dashboardHtmlPath = path.join(__dirname, '../Dashboard.html');
+const mobilHtmlPath = path.join(__dirname, '../Dashboard Mobile.html');
+
+const isMobile = (req) => {
+  const ua = req.headers['user-agent'] || '';
+  return /android|iphone|ipad|ipod|mobile|phone/i.test(ua);
+};
+
 if (fs.existsSync(dashboardHtmlPath)) {
-  app.get(['/', '/Dashboard.html', '/dashboard'], (req, res) => res.sendFile(dashboardHtmlPath));
+  app.get(['/', '/Dashboard.html', '/dashboard'], (req, res) => {
+    if (isMobile(req) && fs.existsSync(mobilHtmlPath)) return res.sendFile(mobilHtmlPath);
+    res.sendFile(dashboardHtmlPath);
+  });
+}
+
+// Keep /mobile as explicit override (force mobile view on any device)
+if (fs.existsSync(mobilHtmlPath)) {
+  app.get(['/mobile', '/mobile.html'], (req, res) => res.sendFile(mobilHtmlPath));
+}
+
+// Small standalone "rings" widget — meant to be opened in its own floating,
+// always-on-top borderless window (see widget.html for details).
+const widgetHtmlPath = path.join(__dirname, '../widget.html');
+if (fs.existsSync(widgetHtmlPath)) {
+  app.get(['/widget', '/widget.html'], (req, res) => res.sendFile(widgetHtmlPath));
 }
 
 // Serve built React app in production

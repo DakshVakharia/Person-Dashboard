@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:  #2ADE80;
+      --orange: #F07830;
+      --blue:   #5BABFF;
+      --purple: #B87BFF;
+      --gold:   #F0C840;
+    }
+    [data-theme="dark"] {
+      --bg:  #0E0E12;
+      --s1:  #1E1E2A;
+      --s2:  #272736;
+      --s3:  #303042;
+      --bd:  #3E3E54;
+      --t1:  #F0F0F6;
+      --t2:  #9898AA;
+      --t3:  #606070;
+    }
+    [data-theme="light"] {
+      --bg:  #EBEBF2;
+      --s1:  #FFFFFF;
+      --s2:  #F2F2F8;
+      --s3:  #E6E6EE;
+      --bd:  #D4D4E0;
+      --t1:  #0A0A14;
+      --t2:  #50505E;
+      --t3:  #8A8A9A;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+
+    body {
+      height: 100dvh;
+      background: var(--bg);
+      color: var(--t1);
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+      transition: background 0.3s, color 0.3s;
+      overflow: hidden;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px 10px;
+      flex-shrink: 0;
+    }
+    .greet-name { font-size: 15px; font-weight: 600; color: var(--t1); }
+    .greet-date { font-size: 11px; color: var(--t2); margin-top: 1px; }
+    .hdr-clock {
+      font-family: 'DM Mono', monospace;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: -1.5px;
+      color: var(--t1);
+    }
+    .theme-btn {
+      width: 32px; height: 32px;
+      border-radius: 9px;
+      border: 1px solid var(--bd);
+      background: var(--s1);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: var(--t2);
+    }
+
+    /* ── Rings header (always visible) ── */
+    .rings-header {
+      background: var(--s1);
+      border-bottom: 1px solid var(--bd);
+      padding: 16px 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-shrink: 0;
+    }
+
+    .rings-svg-wrap {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      flex-shrink: 0;
+    }
+    .rings-svg-wrap svg { transform: rotate(-90deg); }
+    .rings-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .rings-score {
+      font-family: 'DM Mono', monospace;
+      font-size: 26px;
+      font-weight: 500;
+      letter-spacing: -1px;
+      line-height: 1;
+      color: var(--t1);
+    }
+    .rings-score-label {
+      font-size: 9px;
+      color: var(--t2);
+      margin-top: 3px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .rings-legend { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+    .rl-item { display: flex; flex-direction: column; gap: 3px; }
+    .rl-top { display: flex; align-items: center; justify-content: space-between; }
+    .rl-label {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 600; color: var(--t3);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .rl-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .rl-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px; font-weight: 500; color: var(--t1);
+    }
+    .rl-track { height: 3px; background: var(--s3); border-radius: 2px; overflow: hidden; }
+    .rl-fill  { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+
+    /* ── Tab bar ── */
+    .tab-bar {
+      display: flex;
+      background: var(--s1);
+      border-top: 1px solid var(--bd);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 0 8px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--t3);
+      letter-spacing: 0.03em;
+      transition: color 0.15s;
+    }
+    .tab-btn.active { color: var(--green); }
+    .tab-btn svg { opacity: 0.45; transition: opacity 0.15s; }
+    .tab-btn.active svg { opacity: 1; }
+
+    /* ── Scrollable content ── */
+    .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px 14px 10px; -webkit-overflow-scrolling: touch; min-height: 0; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Shared card ── */
+    .card {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 14px;
+      padding: 14px 15px;
+      margin-bottom: 10px;
+    }
+    .lbl {
+      font-size: 9.5px; font-weight: 700; letter-spacing: 0.09em;
+      text-transform: uppercase; color: var(--t3); margin-bottom: 12px;
+    }
+
+    /* ── Muscles tab ── */
+    .mg-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .mg-chip {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: space-between;
+      padding: 10px 4px 8px;
+      background: var(--s2);
+      border-radius: 12px;
+      border: 1px solid var(--bd);
+      aspect-ratio: 1;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .mg-chip.hit {
+      background: color-mix(in srgb, #2ADE80 10%, var(--s2));
+      border-color: color-mix(in srgb, #2ADE80 32%, var(--s2));
+    }
+    .mg-badge { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 700; color: var(--t3); line-height: 1; }
+    .mg-chip.hit .mg-badge { color: var(--green); }
+    .mg-info { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+    .mg-name { font-size: 24px; line-height: 1; }
+    .mg-label { font-size: 8.5px; color: var(--t2); font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+    .mg-counter { display: flex; align-items: center; gap: 5px; }
+    .mg-btn {
+      width: 24px; height: 20px; border-radius: 5px;
+      border: 1px solid var(--bd); background: var(--s3);
+      color: var(--t2); cursor: pointer; font-size: 15px;
+      line-height: 1; display: flex; align-items: center; justify-content: center;
+      padding: 0; font-family: inherit; transition: background 0.1s, color 0.1s;
+    }
+    .mg-btn:hover, .mg-btn:active { background: var(--bd); color: var(--t1); }
+
+    /* ── Habits tab ── */
+    .hab-hdr { display: flex; align-items: center; padding-bottom: 8px; }
+    .hab-name-h { flex: 1; }
+    .hab-days-h { display: flex; gap: 4px; }
+    .hd { width: 22px; text-align: center; font-size: 9.5px; font-weight: 500; color: var(--t3); }
+    .hd.active { color: var(--green); font-weight: 700; }
+    .hab-streak-h { width: 38px; text-align: right; font-size: 9.5px; color: var(--t3); }
+    .hab-row { display: flex; align-items: center; padding: 6px 0; border-top: 1px solid var(--bd); }
+    .hab-name { flex: 1; font-size: 12.5px; color: var(--t1); padding-right: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hab-checks { display: flex; gap: 4px; }
+    .hc {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: var(--s2); border: 1px solid var(--bd);
+      flex-shrink: 0; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .hc.on {
+      background: var(--green); border-color: var(--green);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hc.on::after {
+      content: ''; display: block;
+      width: 5px; height: 3.5px;
+      border-left: 1.5px solid #09090B;
+      border-bottom: 1.5px solid #09090B;
+      transform: rotate(-45deg) translateY(-0.5px);
+    }
+    .hab-streak { width: 38px; text-align: right; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--t2); }
+
+    /* ── Run tab ── */
+    .run-fields {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;
+    }
+    .run-field { display: flex; flex-direction: column; gap: 4px; }
+    .run-field label { font-size: 9.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--t3); }
+    .run-unit { font-size: 8.5px; color: var(--t3); }
+    .run-field input {
+      background: var(--s2); border: 1px solid var(--bd);
+      border-radius: 8px; padding: 9px 10px;
+      font-family: 'DM Mono', monospace; font-size: 15px;
+      font-weight: 500; color: var(--t1); width: 100%; outline: none;
+      transition: border-color 0.15s;
+    }
+    .run-field input::placeholder { color: var(--t3); }
+    .run-field input:focus { border-color: var(--green); }
+    .run-log-btn {
+      width: 100%; padding: 11px;
+      background: var(--green); color: #09090B;
+      border: none; border-radius: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .run-last {
+      display: flex; flex-direction: column; gap: 7px;
+      margin-top: 12px; padding-top: 12px;
+      border-top: 1px solid var(--bd);
+    }
+    .run-last-row { display: flex; justify-content: space-between; align-items: center; }
+    .run-last-key { font-size: 11.5px; color: var(--t2); }
+    .run-last-val { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--t1); font-weight: 500; }
+
+    /* Weekly bar chart in run tab */
+    .run-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+    .run-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .run-track { width: 100%; height: 60px; background: var(--s2); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+    .run-track.today-t { background: transparent; border: 1px dashed var(--bd); }
+    .run-bar { width: 100%; background: var(--green); border-radius: 6px; }
+    .run-dl { font-size: 9px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.04em; }
+    .run-dl.today-dl { color: var(--green); font-weight: 700; }
+
+    /* ── Calendar tab ── */
+    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .cal-month-title { font-size: 13px; font-weight: 600; }
+    .cal-navs { display: flex; gap: 3px; }
+    .cal-nav-btn {
+      width: 24px; height: 24px; border-radius: 6px;
+      border: 1px solid var(--bd); background: var(--s2);
+      color: var(--t2); cursor: pointer; font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .agenda { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+    .ag-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; border-radius: 10px; background: var(--s2);
+    }
+    .ag-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .ag-body { flex: 1; min-width: 0; }
+    .ag-title { font-size: 13px; font-weight: 500; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ag-sub { font-size: 11px; color: var(--t2); margin-top: 2px; }
+    .ag-time {
+      font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600;
+      color: var(--t1); flex-shrink: 0;
+      background: var(--s3); padding: 3px 7px; border-radius: 6px;
+    }
+
+    /* ── Daily goals ── */
+    .dg-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 9px;
+      background: var(--s2); border: 1px solid transparent;
+      cursor: pointer; transition: background 0.15s;
+      margin-bottom: 5px;
+    }
+    .dg-item.done {
+      background: color-mix(in srgb, var(--green) 8%, var(--s2));
+      border-color: color-mix(in srgb, var(--green) 22%, transparent);
+    }
+    .dg-check {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1.5px solid var(--bd); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .dg-item.done .dg-check { background: var(--green); border-color: var(--green); }
+    .dg-item.done .dg-check::after {
+      content: ''; display: block; width: 5px; height: 3px;
+      border-left: 1.5px solid #09090B; border-bottom: 1.5px solid #09090B;
+      transform: rotate(-45deg) translateY(-0.5px);
+    }
+    .dg-text { flex: 1; font-size: 13px; font-weight: 500; color: var(--t1); }
+    .dg-item.done .dg-text { color: var(--t3); text-decoration: line-through; }
+
+    /* ── Modals (bottom sheet) ── */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .modal-sheet {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 18px calc(env(safe-area-inset-bottom, 0px) + 24px);
+      width: 100%; max-width: 480px;
+      transform: translateY(30px);
+      transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+    .modal-backdrop.open .modal-sheet { transform: translateY(0); }
+    .modal-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .modal-ttl { font-size: 15px; font-weight: 700; color: var(--t1); }
+    .modal-x {
+      width: 28px; height: 28px; border-radius: 8px;
+      border: 1px solid var(--bd); background: var(--s2);
+      color: var(--t2); cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mf { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    .mf label { font-size: 9.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--t3); }
+    .mf input {
+      background: var(--s2); border: 1px solid var(--bd);
+      border-radius: 10px; padding: 11px 12px;
+      font-family: 'DM Mono', monospace; font-size: 15px;
+      color: var(--t1); width: 100%; outline: none;
+    }
+    .mf input:focus { border-color: var(--green); }
+    .mf input::placeholder { color: var(--t3); }
+    .mf-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .m-submit {
+      width: 100%; padding: 13px; margin-top: 4px;
+      background: var(--green); color: #09090B;
+      border: none; border-radius: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div>
+      <div class="greet-name" id="greetText">Good morning</div>
+      <div class="greet-date" id="dateText">Monday, 9 June 2026</div>
+    </div>
+    <div class="hdr-clock" id="clockDisplay">07:42</div>
+    <button class="theme-btn" id="themeBtn">☀</button>
+  </div>
+
+  <!-- Rings (always visible) -->
+  <div class="rings-header">
+    <div class="rings-svg-wrap">
+      <svg width="140" height="140" viewBox="0 0 140 140" fill="none">
+        <circle cx="70" cy="70" r="62" stroke="var(--s3)" stroke-width="9"/>
+        <circle cx="70" cy="70" r="47" stroke="var(--s3)" stroke-width="9"/>
+        <circle cx="70" cy="70" r="32" stroke="var(--s3)" stroke-width="9"/>
+        <circle id="mRingCalories" cx="70" cy="70" r="62"
+          stroke="var(--orange)" stroke-width="9"
+          stroke-dasharray="390" stroke-dashoffset="390" stroke-linecap="round"/>
+        <circle id="mRingProtein" cx="70" cy="70" r="47"
+          stroke="var(--blue)" stroke-width="9"
+          stroke-dasharray="295" stroke-dashoffset="295" stroke-linecap="round"/>
+        <circle id="mRingTasks" cx="70" cy="70" r="32"
+          stroke="var(--green)" stroke-width="9"
+          stroke-dasharray="201" stroke-dashoffset="201" stroke-linecap="round"/>
+      </svg>
+      <div class="rings-center">
+        <div class="rings-score" id="mScore">--</div>
+        <div class="rings-score-label">Score</div>
+      </div>
+    </div>
+
+    <div class="rings-legend">
+      <div class="rl-item">
+        <div class="rl-top">
+          <div class="rl-label"><div class="rl-dot" style="background:var(--orange)"></div>Calories</div>
+          <div class="rl-val" id="mCalVal">-- / --</div>
+        </div>
+        <div class="rl-track"><div class="rl-fill" id="mCalFill" style="width:0%;background:var(--orange)"></div></div>
+      </div>
+      <div class="rl-item">
+        <div class="rl-top">
+          <div class="rl-label"><div class="rl-dot" style="background:var(--blue)"></div>Protein</div>
+          <div class="rl-val" id="mProVal">-- / --</div>
+        </div>
+        <div class="rl-track"><div class="rl-fill" id="mProFill" style="width:0%;background:var(--blue)"></div></div>
+      </div>
+      <div class="rl-item">
+        <div class="rl-top">
+          <div class="rl-label"><div class="rl-dot" style="background:var(--green)"></div>Tasks</div>
+          <div class="rl-val" id="mTaskVal">-- / --</div>
+        </div>
+        <div class="rl-track"><div class="rl-fill" id="mTaskFill" style="width:0%;background:var(--green)"></div></div>
+      </div>
+      <!-- Log meal button tucked into legend -->
+      <div style="display:flex;justify-content:flex-end;margin-top:2px;">
+        <button id="mAddMealBtn" style="font-size:11px;font-weight:700;font-family:'Space Grotesk',sans-serif;padding:4px 10px;border-radius:7px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);cursor:pointer;">+ Meal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab content -->
+  <div class="tab-content">
+
+    <!-- Muscles -->
+    <div class="tab-panel active" id="panel-muscles">
+      <div class="card">
+        <div class="lbl">Muscles Hit · This Week</div>
+        <div class="mg-grid">
+          <div class="mg-chip" data-muscle="Chest">
+            <div class="mg-badge">0</div>
+            <div class="mg-info"><div class="mg-name">🫁</div><div class="mg-label">Chest</div></div>
+            <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
+          </div>
+          <div class="mg-chip" data-muscle="Back">
+            <div class="mg-badge">0</div>
+            <div class="mg-info"><div class="mg-name">🔙</div><div class="mg-label">Back</div></div>
+            <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
+          </div>
+          <div class="mg-chip" data-muscle="Shoulders">
+            <div class="mg-badge">0</div>
+            <div class="mg-info"><div class="mg-name">🏋️</div><div class="mg-label">Shoulders</div></div>
+            <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
+          </div>
+          <div class="mg-chip" data-muscle="Legs">
+            <div class="mg-badge">0</div>
+            <div class="mg-info"><div class="mg-name">🦵</div><div class="mg-label">Legs</div></div>
+            <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
+          </div>
+          <div class="mg-chip" data-muscle="Arms">
+            <div class="mg-badge">0</div>
+            <div class="mg-info"><div class="mg-name">💪</div><div class="mg-label">Arms</div></div>
+            <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
+          </div>
+          <div class="mg-chip" data-muscle="Core">
+            <div class="mg-badge">0</div>
+            <div class="mg-info"><div class="mg-name">🎯</div><div class="mg-label">Core</div></div>
+            <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Habits + Goals -->
+    <div class="tab-panel" id="panel-habits">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="lbl" style="margin-bottom:0;">Daily Goals</div>
+          <button id="mDgAddBtn" style="width:24px;height:24px;border-radius:7px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        </div>
+        <div id="dgListMobile"></div>
+      </div>
+      <div class="card">
+        <div class="lbl">Habits · This Week</div>
+        <div class="hab-hdr">
+          <div class="hab-name-h"></div>
+          <div class="hab-days-h" id="mHabDaysHdr">
+            <div class="hd">M</div><div class="hd">T</div><div class="hd">W</div>
+            <div class="hd">T</div><div class="hd">F</div><div class="hd">S</div>
+            <div class="hd active">S</div>
+          </div>
+          <div class="hab-streak-h">streak</div>
+        </div>
+        <div id="mHabRows"></div>
+      </div>
+    </div>
+
+    <!-- Run -->
+    <div class="tab-panel" id="panel-run">
+      <div class="card">
+        <div class="lbl">This Week</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:14px;">
+          <span id="mRunCount" style="font-family:'DM Mono',monospace;font-size:38px;font-weight:500;letter-spacing:-2px;color:var(--t1);">0</span>
+          <span id="mRunMeta" style="font-size:12px;color:var(--t2);">/ 5 runs · 0 km</span>
+        </div>
+        <div class="run-bars" id="mRunBars">
+          <div class="run-col"><div class="run-track"><div class="run-bar" style="height:0%"></div></div><div class="run-dl">M</div></div>
+          <div class="run-col"><div class="run-track"><div class="run-bar" style="height:0%"></div></div><div class="run-dl">T</div></div>
+          <div class="run-col"><div class="run-track"><div class="run-bar" style="height:0%"></div></div><div class="run-dl">W</div></div>
+          <div class="run-col"><div class="run-track"><div class="run-bar" style="height:0%"></div></div><div class="run-dl">T</div></div>
+          <div class="run-col"><div class="run-track"><div class="run-bar" style="height:0%"></div></div><div class="run-dl">F</div></div>
+          <div class="run-col"><div class="run-track"><div class="run-bar" style="height:0%"></div></div><div class="run-dl">S</div></div>
+          <div class="run-col"><div class="run-track today-t"><div class="run-bar" style="height:0%"></div></div><div class="run-dl today-dl">S</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="lbl">Log Today's Run</div>
+        <div class="run-fields">
+          <div class="run-field"><label>Distance <span class="run-unit">km</span></label><input type="number" id="mRunDist" placeholder="5.0" step="0.1" min="0"></div>
+          <div class="run-field"><label>Avg Pace <span class="run-unit">min/km</span></label><input type="text" id="mRunPace" placeholder="5:30"></div>
+          <div class="run-field"><label>Cadence <span class="run-unit">spm</span></label><input type="number" id="mRunCadence" placeholder="172" min="0"></div>
+          <div class="run-field"><label>Avg BPM <span class="run-unit">bpm</span></label><input type="number" id="mRunBPM" placeholder="158" min="0"></div>
+        </div>
+        <button class="run-log-btn" id="mRunLogBtn">Log Run</button>
+        <div class="run-last" id="mRunLast" style="display:none;">
+          <div class="lbl" style="margin-bottom:2px;">Last Run</div>
+          <div class="run-last-row"><span class="run-last-key">Distance</span><span class="run-last-val" id="mLlDist">—</span></div>
+          <div class="run-last-row"><span class="run-last-key">Pace</span><span class="run-last-val" id="mLlPace">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="tab-panel" id="panel-calendar">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <button class="cal-nav-btn" id="dayPrev" style="width:32px;height:32px;font-size:16px;">‹</button>
+          <div style="text-align:center;">
+            <div style="font-size:14px;font-weight:700;color:var(--t1);" id="agendaDay">—</div>
+            <div style="font-size:10px;color:var(--t2);margin-top:2px;" id="agendaDayLabel">Today</div>
+          </div>
+          <div style="display:flex;gap:4px;">
+            <button class="cal-nav-btn" id="calRefresh" style="width:32px;height:32px;font-size:14px;" title="Refresh">↻</button>
+            <button class="cal-nav-btn" id="dayNext" style="width:32px;height:32px;font-size:16px;">›</button>
+          </div>
+        </div>
+        <div class="agenda" id="agendaList">
+          <div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-content -->
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="muscles">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <path d="M4 10c0-2 1.5-3.5 3-3.5s2 1 3 1 1.5-1 3-1 3 1.5 3 3.5-1.5 4-3 4-2-1-3-1-1.5 1-3 1-3-2-3-4Z"/>
+        <path d="M2 10h2M16 10h2"/>
+      </svg>
+      Muscles
+    </button>
+    <button class="tab-btn" data-tab="habits">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="14" height="14" rx="3"/>
+        <path d="M7 10l2 2 4-4"/>
+      </svg>
+      Habits
+    </button>
+    <button class="tab-btn" data-tab="run">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 14l4-5 3 3 4-6 3 3"/>
+      </svg>
+      Run
+    </button>
+    <button class="tab-btn" data-tab="calendar">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <rect x="3" y="4" width="14" height="13" rx="2.5"/>
+        <path d="M3 8h14M7 2v3M13 2v3"/>
+      </svg>
+      Calendar
+    </button>
+  </div>
+
+  <!-- Add Meal (bottom sheet) -->
+  <div class="modal-backdrop" id="mAddMealModal">
+    <div class="modal-sheet">
+      <div class="modal-hdr">
+        <span class="modal-ttl">Log a Meal</span>
+        <button class="modal-x" id="mMealClose">&times;</button>
+      </div>
+      <div class="mf"><label>Name</label><input type="text" id="mMealName" placeholder="e.g. Chicken &amp; rice" maxlength="80"></div>
+      <div class="mf-2col">
+        <div class="mf"><label>Calories <span class="run-unit">kcal</span></label><input type="number" id="mMealCal" placeholder="450" min="0"></div>
+        <div class="mf"><label>Protein <span class="run-unit">g</span></label><input type="number" id="mMealPro" placeholder="35" min="0" step="0.1"></div>
+        <div class="mf"><label>Carbs <span class="run-unit">g</span></label><input type="number" id="mMealCarbs" placeholder="40" min="0" step="0.1"></div>
+        <div class="mf"><label>Fat <span class="run-unit">g</span></label><input type="number" id="mMealFat" placeholder="12" min="0" step="0.1"></div>
+      </div>
+      <button class="m-submit" id="mMealSubmit">Log Meal</button>
+    </div>
+  </div>
+
+  <!-- Add Goal (bottom sheet) -->
+  <div class="modal-backdrop" id="mAddGoalModal">
+    <div class="modal-sheet">
+      <div class="modal-hdr">
+        <span class="modal-ttl">Add Daily Goal</span>
+        <button class="modal-x" id="mGoalClose">&times;</button>
+      </div>
+      <div class="mf"><label>Title</label><input type="text" id="mGoalTitle" placeholder="e.g. Drink 2L water" maxlength="60"></div>
+      <div class="mf"><label>Icon (emoji, optional)</label><input type="text" id="mGoalIcon" placeholder="🎯" maxlength="4"></div>
+      <button class="m-submit" id="mGoalSubmit">Add Goal</button>
+    </div>
+  </div>
+
+  <script>
+    // ── API ──
+    async function api(path, opts = {}) {
+      const res = await fetch(path, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...opts });
+      if (!res.ok) throw new Error(res.statusText);
+      const ct = res.headers.get('content-type') || '';
+      return ct.includes('json') ? res.json() : null;
+    }
+    function todayStr() {
+      const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+
+    // ── Clock ──
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const WDAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    let _name = '';
+    function tick() {
+      const d = new Date(), h = d.getHours(), m = String(d.getMinutes()).padStart(2,'0');
+      document.getElementById('clockDisplay').textContent = String(h).padStart(2,'0') + ':' + m;
+      const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('greetText').textContent = _name ? g + ', ' + _name : g;
+      document.getElementById('dateText').textContent  = WDAYS[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+    }
+    tick(); setInterval(tick, 30000);
+    api('/api/auth/me').then(r => { if (r?.user?.name) { _name = r.user.name.split(' ')[0]; tick(); } }).catch(() => {});
+
+    // ── Theme ──
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('themeBtn');
+    const st = localStorage.getItem('dash-theme');
+    if (st) { html.setAttribute('data-theme', st); themeBtn.textContent = st === 'dark' ? '☀' : '☽'; }
+    themeBtn.addEventListener('click', () => {
+      const dark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', dark ? 'light' : 'dark');
+      themeBtn.textContent = dark ? '☽' : '☀';
+      localStorage.setItem('dash-theme', dark ? 'light' : 'dark');
+    });
+
+    // ── Rings ──
+    function setRing(id, c, pct) {
+      const el = document.getElementById(id); if (!el) return;
+      el.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(0.4,0,0.2,1)';
+      el.setAttribute('stroke-dashoffset', Math.max(0, Math.round(c * (1 - Math.min(Math.max(pct,0),100)/100))));
+    }
+    async function refreshRings() {
+      try {
+        const [rings, meals, settings, goals] = await Promise.all([
+          api('/api/rings/today'), api('/api/meals?date='+todayStr()),
+          api('/api/goals'),       api('/api/goal-tracker'),
+        ]);
+        const cg = parseInt(settings.calorie_goal||'2200'), pg = rings.protein_goal||parseInt(settings.protein_goal||'130');
+        const cal = meals.reduce((s,m)=>s+(m.calories||0),0), pro = rings.protein_intake||0;
+        const daily = goals.filter(g=>g.period==='daily'), done = daily.filter(g=>g.completed).length, total = daily.length;
+        const cp = cg ? Math.min(100,Math.round(cal/cg*100)) : 0;
+        const pp = pg ? Math.min(100,Math.round(pro/pg*100)) : 0;
+        const tp = total ? Math.round(done/total*100) : 0;
+        setRing('mRingCalories',390,cp); setRing('mRingProtein',295,pp); setRing('mRingTasks',201,tp);
+        document.getElementById('mCalVal').textContent  = Math.round(cal)+' / '+cg;
+        document.getElementById('mProVal').textContent  = Math.round(pro)+' / '+pg+'g';
+        document.getElementById('mTaskVal').textContent = done+' / '+total;
+        document.getElementById('mCalFill').style.width  = cp+'%';
+        document.getElementById('mProFill').style.width  = pp+'%';
+        document.getElementById('mTaskFill').style.width = tp+'%';
+        document.getElementById('mScore').textContent = (Math.round(((cp+pp+tp)/3)/10*10)/10).toFixed(1);
+      } catch(e) {}
+    }
+
+    // ── Muscles ──
+    async function refreshMuscles() {
+      try {
+        const today = new Date(), dow = today.getDay()||7;
+        const mon = new Date(today); mon.setHours(0,0,0,0); mon.setDate(today.getDate()-(dow-1));
+        const ws = mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
+        const data = await api('/api/workouts?week_start='+ws);
+        const counts = {}; data.forEach(w=>{ counts[w.muscle_group]=(counts[w.muscle_group]||0)+(w.sets||1); });
+        document.querySelectorAll('.mg-chip').forEach(chip => {
+          const n = counts[chip.dataset.muscle]||0;
+          chip.querySelector('.mg-badge').textContent = n;
+          chip.classList.toggle('hit', n>0);
+        });
+      } catch(e) {}
+    }
+    document.querySelectorAll('.mg-chip').forEach(chip => {
+      const muscle = chip.dataset.muscle, badge = chip.querySelector('.mg-badge');
+      const set = n => { badge.textContent=n; chip.classList.toggle('hit',n>0); };
+      chip.querySelector('.mg-minus').addEventListener('click', async () => {
+        const n=parseInt(badge.textContent); if(n<=0)return; set(n-1);
+        try { await api('/api/workouts/decrement',{method:'POST',body:JSON.stringify({muscle_group:muscle})}); } catch(e){}
+      });
+      chip.querySelector('.mg-plus').addEventListener('click', async () => {
+        set(parseInt(badge.textContent)+1);
+        try { await api('/api/workouts',{method:'POST',body:JSON.stringify({muscle_group:muscle})}); } catch(e){}
+      });
+    });
+
+    // ── Habits ──
+    const DL = ['M','T','W','T','F','S','S'];
+    async function refreshHabits() {
+      try {
+        const { habits, dates } = await api('/api/habits/week');
+        const today = todayStr();
+        document.getElementById('mHabDaysHdr').innerHTML = dates.map(d => {
+          const idx = new Date(d+'T12:00:00').getDay(); const i = idx===0?6:idx-1;
+          return `<div class="hd${d===today?' active':''}">${DL[i]}</div>`;
+        }).join('');
+        const c = document.getElementById('mHabRows');
+        c.innerHTML = habits.map(h => {
+          const checks = h.days.map((done,i) => {
+            const isT = dates[i]===today;
+            return `<div class="hc${done?' on':''}" data-id="${h.id}" data-date="${dates[i]}" data-today="${isT}"></div>`;
+          }).join('');
+          const s = h.streak; const sl = s>0 ? s+'d'+(s>=7?' 🔥':'') : '';
+          return `<div class="hab-row"><div class="hab-name">${h.icon?h.icon+' ':''}${h.name}</div><div class="hab-checks">${checks}</div><div class="hab-streak">${sl}</div></div>`;
+        }).join('');
+        c.querySelectorAll('.hc[data-today="true"]').forEach(hc => {
+          hc.addEventListener('click', async () => {
+            const was = hc.classList.contains('on'); hc.classList.toggle('on',!was);
+            try { await api(`/api/habits/${hc.dataset.id}/complete`,{method:'PATCH',body:JSON.stringify({completed:!was,date:hc.dataset.date})}); refreshRings(); }
+            catch(e) { hc.classList.toggle('on',was); }
+          });
+        });
+      } catch(e) {}
+    }
+
+    // ── Daily Goals ──
+    async function refreshDailyGoals() {
+      try {
+        const goals = await api('/api/goal-tracker');
+        const daily = goals.filter(g=>g.period==='daily');
+        const el = document.getElementById('dgListMobile');
+        el.innerHTML = daily.length
+          ? daily.map(g=>`<div class="dg-item${g.completed?' done':''}" data-id="${g.id}" data-done="${!!g.completed}"><div class="dg-check"></div><div class="dg-text">${g.icon||'🎯'} ${g.title}</div></div>`).join('')
+          : '<div style="color:var(--t3);font-size:12px;padding:6px 0;">No goals yet</div>';
+        el.querySelectorAll('.dg-item').forEach(item => {
+          item.addEventListener('click', async () => {
+            const was = item.dataset.done==='true'; item.dataset.done=String(!was); item.classList.toggle('done',!was);
+            try { await api(`/api/goal-tracker/${item.dataset.id}/progress`,{method:'POST',body:JSON.stringify({value:was?0:1})}); refreshRings(); } catch(e){}
+          });
+        });
+      } catch(e) {}
+    }
+    document.getElementById('mDgAddBtn').addEventListener('click',()=>document.getElementById('mAddGoalModal').classList.add('open'));
+    document.getElementById('mGoalClose').addEventListener('click',()=>document.getElementById('mAddGoalModal').classList.remove('open'));
+    document.getElementById('mGoalSubmit').addEventListener('click', async () => {
+      const title = document.getElementById('mGoalTitle').value.trim();
+      const icon  = document.getElementById('mGoalIcon').value.trim();
+      if (!title) return;
+      try {
+        await api('/api/goal-tracker',{method:'POST',body:JSON.stringify({title,period:'daily',icon:icon||undefined})});
+        document.getElementById('mGoalTitle').value=''; document.getElementById('mGoalIcon').value='';
+        document.getElementById('mAddGoalModal').classList.remove('open');
+        refreshDailyGoals(); refreshRings();
+      } catch(e){}
+    });
+
+    // ── Run ──
+    async function refreshRun() {
+      try {
+        const today=new Date(), dow=today.getDay()||7;
+        const mon=new Date(today); mon.setHours(0,0,0,0); mon.setDate(today.getDate()-(dow-1));
+        const ws=mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
+        const runs=await api('/api/runs?week_start='+ws);
+        const byDay={}; runs.forEach(r=>{byDay[r.date]=(byDay[r.date]||0)+r.distance_km;});
+        const total=runs.reduce((s,r)=>s+r.distance_km,0);
+        document.getElementById('mRunCount').textContent=runs.length;
+        document.getElementById('mRunMeta').textContent='/ 5 runs · '+total.toFixed(1)+' km';
+        const days=Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+        const maxKm=Math.max(...days.map(d=>byDay[d.toISOString().split('T')[0]]||0),0.1);
+        const todS=todayStr();
+        document.getElementById('mRunBars').innerHTML=days.map((d,i)=>{
+          const ds=d.toISOString().split('T')[0], km=byDay[ds]||0, pct=Math.round(km/maxKm*100), isT=ds===todS;
+          return `<div class="run-col"><div class="run-track${isT?' today-t':''}"><div class="run-bar" style="height:${pct}%"></div></div><div class="run-dl${isT?' today-dl':''}">${DL[i]}</div></div>`;
+        }).join('');
+        if (runs.length>0) {
+          const last=runs[0];
+          document.getElementById('mLlDist').textContent=last.distance_km.toFixed(1)+' km';
+          document.getElementById('mLlPace').textContent=last.pace?last.pace+' /km':'—';
+          document.getElementById('mRunLast').style.display='flex';
+        }
+      } catch(e) {}
+    }
+    document.getElementById('mRunLogBtn').addEventListener('click', async () => {
+      const dist=document.getElementById('mRunDist').value; if (!dist) return;
+      const today=new Date(), dow=today.getDay()||7;
+      const mon=new Date(today); mon.setHours(0,0,0,0); mon.setDate(today.getDate()-(dow-1));
+      const ws=mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
+      try {
+        await api('/api/runs',{method:'POST',body:JSON.stringify({
+          date:todayStr(), week_start_date:ws, distance_km:parseFloat(dist),
+          pace:document.getElementById('mRunPace').value||null,
+          cadence:document.getElementById('mRunCadence').value?parseInt(document.getElementById('mRunCadence').value):null,
+          bpm:document.getElementById('mRunBPM').value?parseInt(document.getElementById('mRunBPM').value):null,
+        })});
+        ['mRunDist','mRunPace','mRunCadence','mRunBPM'].forEach(id=>document.getElementById(id).value='');
+        refreshRun();
+      } catch(e){ alert('Failed to log run'); }
+    });
+
+    // ── Calendar ──
+    let calDate=new Date(); calDate.setHours(0,0,0,0);
+    function cds(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+    function renderDayLabel(){
+      const now=new Date(); now.setHours(0,0,0,0);
+      const diff=Math.round((calDate-now)/86400000);
+      const sub=diff===0?'Today':diff===1?'Tomorrow':diff===-1?'Yesterday':'';
+      document.getElementById('agendaDay').textContent=WDAYS[calDate.getDay()]+', '+calDate.getDate()+' '+MONTHS[calDate.getMonth()];
+      const dl=document.getElementById('agendaDayLabel'); dl.textContent=sub; dl.style.display=sub?'':'none';
+    }
+    async function refreshCalendar(){
+      renderDayLabel();
+      const list=document.getElementById('agendaList');
+      list.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Loading…</div>';
+      try {
+        const events=await api('/api/calendar/events?date='+cds(calDate));
+        if (!events.length){list.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Schedule is clear</div>';return;}
+        const cols=['var(--green)','var(--blue)','var(--orange)','var(--purple)','var(--gold)'];
+        list.innerHTML=events.map((ev,i)=>{
+          const time=ev.start?.dateTime?new Date(ev.start.dateTime).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}):'All day';
+          return `<div class="ag-item"><div class="ag-dot" style="background:${cols[i%cols.length]}"></div><div class="ag-body"><div class="ag-title">${ev.summary||'(no title)'}</div>${ev.location?`<div class="ag-sub">${ev.location}</div>`:''}</div><div class="ag-time">${time}</div></div>`;
+        }).join('');
+      } catch(e){list.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Could not load events</div>';}
+    }
+    document.getElementById('dayPrev').addEventListener('click',()=>{calDate.setDate(calDate.getDate()-1);refreshCalendar();});
+    document.getElementById('dayNext').addEventListener('click',()=>{calDate.setDate(calDate.getDate()+1);refreshCalendar();});
+    document.getElementById('calRefresh').addEventListener('click',async()=>{
+      const b=document.getElementById('calRefresh'); b.style.opacity='0.4'; await refreshCalendar(); b.style.opacity='';
+    });
+
+    // ── Add Meal ──
+    document.getElementById('mAddMealBtn').addEventListener('click',()=>document.getElementById('mAddMealModal').classList.add('open'));
+    document.getElementById('mMealClose').addEventListener('click',()=>document.getElementById('mAddMealModal').classList.remove('open'));
+    document.getElementById('mMealSubmit').addEventListener('click', async () => {
+      const name=document.getElementById('mMealName').value.trim(); if (!name) return;
+      try {
+        await api('/api/meals',{method:'POST',body:JSON.stringify({
+          name, date:todayStr(),
+          calories:parseFloat(document.getElementById('mMealCal').value)||0,
+          protein:parseFloat(document.getElementById('mMealPro').value)||0,
+          carbs:parseFloat(document.getElementById('mMealCarbs').value)||0,
+          fat:parseFloat(document.getElementById('mMealFat').value)||0,
+        })});
+        ['mMealName','mMealCal','mMealPro','mMealCarbs','mMealFat'].forEach(id=>document.getElementById(id).value='');
+        document.getElementById('mAddMealModal').classList.remove('open');
+        refreshRings();
+      } catch(e){ alert('Failed to log meal'); }
+    });
+    // Close on backdrop tap
+    ['mAddMealModal','mAddGoalModal'].forEach(id=>{
+      document.getElementById(id).addEventListener('click',e=>{if(e.target.id===id)document.getElementById(id).classList.remove('open');});
+    });
+
+    // ── Tabs ──
+    document.querySelectorAll('.tab-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const tab=btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-'+tab).classList.add('active');
+        if (tab==='calendar') refreshCalendar();
+      });
+    });
+
+    // ── WebSocket ──
+    function connectWS(){
+      try {
+        const ws=new WebSocket((location.protocol==='https:'?'wss:':'ws:')+`//${location.host}`);
+        ws.onmessage=ev=>{
+          let msg; try{msg=JSON.parse(ev.data);}catch(e){return;}
+          if(['rings_updated','meals_updated','goals_updated','goal_tracker_updated'].includes(msg.type)) refreshRings();
+          if(msg.type==='workouts_updated') refreshMuscles();
+          if(['habits_updated','goal_tracker_updated'].includes(msg.type)){refreshHabits();refreshDailyGoals();}
+          if(msg.type==='runs_updated') refreshRun();
+        };
+        ws.onclose=()=>setTimeout(connectWS,3000); ws.onerror=()=>ws.close();
+      } catch(e){setTimeout(connectWS,3000);}
+    }
+
+    // ── Init ──
+    refreshRings();
+    refreshMuscles();
+    refreshHabits();
+    refreshDailyGoals();
+    refreshRun();
+    connectWS();
+  </script>
+</body>
+</html>

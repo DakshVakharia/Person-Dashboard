@@ -894,6 +894,91 @@
     }
 
     .modal-close:hover { color: var(--t1); background: var(--s3); }
+
+    /* ── Bottom tab bar (hidden on desktop) ── */
+    .p-tab-bar { display: none; }
+
+    /* ── Portrait / mobile layout ── */
+    @media (max-width: 700px) {
+      body {
+        padding: 10px 12px 72px;
+        gap: 10px;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      header {
+        min-height: auto;
+        padding: 4px 0 8px;
+      }
+
+      .hdr-clock {
+        position: static;
+        transform: none;
+        font-size: 44px;
+        letter-spacing: -2.5px;
+        text-align: center;
+        margin: 0 auto;
+        display: block;
+      }
+
+      .greet-name { font-size: 15px; }
+      .greet-date { font-size: 11px; }
+
+      .grid { grid-template-columns: 1fr; }
+
+      /* Top-level columns: hidden on mobile by default */
+      #colLeft, #colCenter, #colRight {
+        display: none;
+      }
+      #colLeft.p-active, #colCenter.p-active, #colRight.p-active {
+        display: flex;
+      }
+
+      /* Rings: stack SVG + legend vertically on narrow screens */
+      .conc-card {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .conc-svg-wrap { width: 160px; height: 160px; }
+      .conc-svg-wrap svg { width: 160px; height: 160px; }
+      .conc-legend { width: 100%; }
+
+      /* Fixed bottom tab bar */
+      .p-tab-bar {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: var(--s1);
+        border-top: 1px solid var(--bd);
+        z-index: 200;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      .p-tab-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 0 10px;
+        border: none;
+        background: transparent;
+        color: var(--t3);
+        font-size: 10px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        gap: 4px;
+        transition: color 0.15s;
+      }
+
+      .p-tab-btn .p-tab-icon { font-size: 20px; line-height: 1; }
+      .p-tab-btn.active { color: var(--blue); }
+    }
   </style>
 </head>
 <body>
@@ -914,7 +999,7 @@
   <div class="grid">
 
     <!-- ─── LEFT: Calendar + Agenda ─── -->
-    <div class="col">
+    <div class="col" id="colLeft">
       <div class="card">
         <div class="lbl">Calendar</div>
         <div class="cal-head">
@@ -922,6 +1007,7 @@
           <div class="cal-navs">
             <button class="cal-nav-btn" id="calPrevBtn">‹</button>
             <button class="cal-nav-btn" id="calNextBtn">›</button>
+            <button class="cal-nav-btn" id="calRefreshBtn" title="Refresh calendar">↻</button>
           </div>
         </div>
         <div class="agenda" id="agendaList">
@@ -935,7 +1021,7 @@
     </div>
 
     <!-- ─── CENTER: Nutrition + Habits ─── -->
-    <div class="col">
+    <div class="col" id="colCenter">
 
       <!-- Concentric rings: Calories · Protein · Tasks -->
       <div class="card" style="--d:0.09s">
@@ -1169,7 +1255,7 @@
     </div>
 
     <!-- ─── RIGHT: Running + Muscles + Goals ─── -->
-    <div class="col">
+    <div class="col" id="colRight">
 
       <!-- Running graph button + Run logger -->
       <button class="run-open-btn" id="runOpenBtn">
@@ -1973,6 +2059,15 @@
       refreshAgenda();
     });
 
+    document.getElementById('calRefreshBtn')?.addEventListener('click', async () => {
+      const btn = document.getElementById('calRefreshBtn');
+      btn.style.opacity = '0.4';
+      btn.style.pointerEvents = 'none';
+      await refreshAgenda();
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+    });
+
     // Re-sync from Google Calendar every hour
     setInterval(refreshAgenda, 60 * 60 * 1000);
 
@@ -2091,7 +2186,59 @@
     refreshMuscles();
     refreshRunWeek();
     refreshAgenda();
+
+    // ── Portrait tab switching ──
+    (function () {
+      const BREAK = 700;
+      let activeTab = 'calendar';
+
+      function showTab(tab) {
+        activeTab = tab;
+        const map = { calendar: 'colLeft', today: 'colCenter', fitness: 'colRight' };
+        Object.entries(map).forEach(([t, id]) => {
+          const el = document.getElementById(id);
+          if (el) el.classList.toggle('p-active', t === tab);
+        });
+        document.querySelectorAll('.p-tab-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.tab === tab);
+        });
+      }
+
+      function syncMode() {
+        if (window.innerWidth <= BREAK) {
+          showTab(activeTab);
+        } else {
+          // Desktop: remove portrait classes, show everything via CSS grid
+          ['colLeft', 'colCenter', 'colRight'].forEach(id => {
+            document.getElementById(id)?.classList.remove('p-active');
+          });
+        }
+      }
+
+      document.querySelectorAll('.p-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => showTab(btn.dataset.tab));
+      });
+
+      syncMode();
+      window.addEventListener('resize', syncMode);
+    })();
   </script>
+
+  <!-- Portrait bottom tab bar -->
+  <nav class="p-tab-bar">
+    <button class="p-tab-btn active" data-tab="calendar">
+      <span class="p-tab-icon">📅</span>
+      Calendar
+    </button>
+    <button class="p-tab-btn" data-tab="today">
+      <span class="p-tab-icon">📊</span>
+      Today
+    </button>
+    <button class="p-tab-btn" data-tab="fitness">
+      <span class="p-tab-icon">💪</span>
+      Fitness
+    </button>
+  </nav>
 
 </body>
 </html>
