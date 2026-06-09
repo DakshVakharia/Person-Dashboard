@@ -29,6 +29,7 @@ import workoutsRoutes from './routes/workouts.js';
 import logsRoutes from './routes/logs.js';
 import goalTrackerRoutes from './routes/goalTracker.js';
 import runsRoutes from './routes/runs.js';
+import backupRoutes from './routes/backup.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -109,6 +110,7 @@ app.use('/api/goals', goalsRoutes);
 app.use('/api/goal-tracker', goalTrackerRoutes);
 app.use('/api/runs', runsRoutes);
 app.use('/api/logs', logsRoutes);
+app.use('/api/backup', backupRoutes);
 app.use('/api/workouts', workoutsRoutes);
 
 // Serve the new static dashboard front-end (Dashboard.html) — same-origin so
@@ -177,6 +179,11 @@ cron.schedule('* * * * *', async () => {
 cron.schedule('0 22 * * *', async () => {
   const { syncDailyWorkoutToCalendar } = await import('./services/scheduler.js');
   syncDailyWorkoutToCalendar();
+});
+
+cron.schedule('0 3 * * *', async () => {
+  const { backupToDrive } = await import('./services/googleDrive.js');
+  backupToDrive().catch(e => console.error('[Backup] Failed:', e.message));
 });
 
 const PORT = process.env.PORT || 3001;
