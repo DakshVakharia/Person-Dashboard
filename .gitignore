@@ -26,6 +26,9 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Claude AI files
+.claude/
+
 # Vite temp files
 *.timestamp-*.mjs
 .claude/settings.local.json
