@@ -6,6 +6,7 @@ import fs from 'fs';
 import { db, todayStr } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { processChat } from '../services/gemini.js';
+import { parseMeal } from '../services/mealParser.js';
 import { appEvents } from '../events.js';
 import { logActivity } from '../services/activityLog.js';
 
@@ -91,6 +92,30 @@ router.delete('/:id', requireAuth, (req, res) => {
   appEvents.emit('broadcast', { type: 'rings_updated', data: db.prepare('SELECT * FROM daily_rings WHERE date = ?').get(meal.date) });
   appEvents.emit('broadcast', { type: 'meals_updated', data: { date: meal.date } });
   res.json({ ok: true });
+});
+
+// POST /api/meals/parse — natural language → macros → logged
+router.post('/parse', requireAuth, async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: 'text required' });
+  try {
+    const meal = await parseMeal(text);
+    const date = todayStr();
+    const result = db.prepare(
+      'INSERT INTO meals (name, calories, protein, carbs, fat, date) VALUES (?,?,?,?,?,?)'
+    ).run(meal.name, meal.calories||0, meal.protein||0, meal.carbs||0, meal.fat||0, date);
+
+    const totals = db.prepare('SELECT SUM(protein) as p FROM meals WHERE date = ?').get(date);
+    db.prepare('UPDATE daily_rings SET protein_intake = ?, updated_at = CURRENT_TIMESTAMP WHERE date = ?')
+      .run(totals.p||0, date);
+
+    appEvents.emit('broadcast', { type: 'meals_updated', data: { date } });
+    appEvents.emit('broadcast', { type: 'rings_updated', data: {} });
+
+    res.json({ ok: true, meal: { id: result.lastInsertRowid, ...meal, date } });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 export default router;

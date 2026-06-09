@@ -49,12 +49,33 @@
       color: var(--t1);
       font-family: 'Space Grotesk', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
-      padding: 18px 20px 28px;
+      padding: 10px 20px 60px;
       display: flex;
       flex-direction: column;
       gap: 14px;
       transition: background 0.3s, color 0.3s;
       overflow-x: hidden;
+      position: relative;
+    }
+    body::before {
+      content: "I'M TIRED.\AYOU'RE TIRED.\ANOBODY CARES.\AIT'S TIME TO\AWORK ON\AYOUR GOALS.";
+      white-space: pre;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 110px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.15;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      color: var(--t1);
+      opacity: 0.13;
+      pointer-events: none;
+      z-index: 0;
+      width: 100%;
     }
 
 
@@ -73,7 +94,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 96px;
+      min-height: 93px;
     }
 
     .greet-name {
@@ -91,16 +112,21 @@
 
     .hdr-clock {
       font-family: 'DM Mono', monospace;
-      font-size: 96px;
+      font-size: 93px;
       font-weight: 500;
       letter-spacing: -6px;
       line-height: 1;
       color: var(--t1);
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
       white-space: nowrap;
+    }
+    .hdr-sub {
+      font-size: 13px;
+      color: var(--t2);
+      letter-spacing: 0.02em;
+      margin-top: 4px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
     }
 
     .theme-btn {
@@ -140,12 +166,16 @@
 
     /* ── Card base ── */
     .card {
-      background: var(--s1);
-      border: 1px solid var(--bd);
+      background: rgba(30, 30, 42, 0.45);
+      border: 1px solid rgba(62, 62, 84, 0.5);
       border-radius: 14px;
       padding: 16px 18px;
       transition: background 0.3s, border-color 0.3s;
       min-width: 0;
+    }
+    [data-theme="light"] .card {
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(212, 212, 224, 0.5);
     }
 
     .lbl {
@@ -476,8 +506,8 @@
       gap: 8px;
       padding: 9px 14px;
       border-radius: 10px;
-      border: 1px solid var(--bd);
-      background: var(--s2);
+      border: 1px solid rgba(62, 62, 84, 0.5);
+      background: rgba(30, 30, 42, 0.45);
       color: var(--t2);
       cursor: pointer;
       font-family: 'Space Grotesk', sans-serif;
@@ -755,6 +785,13 @@
       text-decoration: line-through;
       text-decoration-color: var(--t3);
     }
+    .dg-del {
+      background: none; border: none; color: var(--t3);
+      cursor: pointer; font-size: 15px; line-height: 1;
+      padding: 0 2px; margin-left: auto; flex-shrink: 0;
+      opacity: 0; transition: opacity 0.15s;
+    }
+    .dg-item:hover .dg-del { opacity: 1; }
 
     .dg-tag {
       font-size: 9.5px;
@@ -986,14 +1023,14 @@
   <!-- ═══ HEADER ═══ -->
   <header>
     <div>
-      <div class="greet-name" id="greetText">Good morning, Alex</div>
-      <div class="greet-date">Sunday, 7 June 2026</div>
+      <div class="hdr-clock" id="clockDisplay">07:42</div>
+      <div class="hdr-sub">
+        <span id="hdrDate">—</span>
+        <span id="hdrWeather">—</span>
+      </div>
     </div>
-
-    <div class="hdr-clock" id="clockDisplay">07:42</div>
-
-    <button class="theme-btn" id="themeBtn" title="Toggle theme">☀</button>
   </header>
+
 
   <!-- ═══ GRID ═══ -->
   <div class="grid">
@@ -1021,13 +1058,16 @@
     </div>
 
     <!-- ─── CENTER: Nutrition + Habits ─── -->
-    <div class="col" id="colCenter">
+    <div class="col" id="colCenter" style="margin-top:-93px;">
 
       <!-- Concentric rings: Calories · Protein · Tasks -->
       <div class="card" style="--d:0.09s">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div class="lbl" style="margin-bottom:0;">Today's Progress</div>
-          <button class="cal-nav-btn" id="addMealBtn" title="Log a meal" style="font-size:15px;">+</button>
+        <div class="lbl">Today's Progress</div>
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <input id="aiMealInput" type="text" placeholder="I had 2 eggs and toast…" autocomplete="off"
+            style="flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:8px 12px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--t1);outline:none;transition:border-color 0.15s;"
+            onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--bd)'"/>
+          <button id="aiMealBtn" style="padding:8px 14px;border-radius:9px;border:none;background:var(--green);color:#09090B;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Log ↑</button>
         </div>
         <div class="conc-card">
 
@@ -1139,6 +1179,8 @@
           </div>
           <div style="display:flex;gap:18px;flex-wrap:wrap;max-height:64vh;overflow-y:auto;">
             <div style="flex:1 1 280px;">
+              <div class="lbl">Today's Meals</div>
+              <div id="mealLogList" style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;"></div>
               <div class="lbl">Past 7 Days</div>
               <div id="logsDays" style="display:flex;flex-direction:column;gap:8px;"></div>
             </div>
@@ -1255,7 +1297,7 @@
     </div>
 
     <!-- ─── RIGHT: Running + Muscles + Goals ─── -->
-    <div class="col" id="colRight">
+    <div class="col" id="colRight" style="margin-top:-93px;">
 
       <!-- Running graph button + Run logger -->
       <button class="run-open-btn" id="runOpenBtn">
@@ -1287,11 +1329,6 @@
           </div>
         </div>
         <button class="run-log-btn" id="runLogBtn">Log Run</button>
-        <div class="run-last" id="runLast">
-          <div class="lbl" style="margin-bottom:2px;">Last Run · Today</div>
-          <div class="run-last-row"><span class="run-last-key">Distance</span><span class="run-last-val" id="llDist">7.2 km</span></div>
-          <div class="run-last-row"><span class="run-last-key">Pace</span><span class="run-last-val" id="llPace">5:12 /km</span></div>
-        </div>
       </div>
 
       <!-- Running graph modal -->
@@ -1394,22 +1431,55 @@
               <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
-          <div class="mg-chip" data-muscle="Legs">
+          <div class="mg-chip" data-muscle="Quads">
             <div class="mg-badge">0</div>
             <div class="mg-info">
               <div class="mg-name">🦵</div>
-              <div class="mg-label">Legs</div>
+              <div class="mg-label">Quads</div>
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
               <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
-          <div class="mg-chip" data-muscle="Arms">
+          <div class="mg-chip" data-muscle="Hamstrings">
+            <div class="mg-badge">0</div>
+            <div class="mg-info">
+              <div class="mg-name">🦿</div>
+              <div class="mg-label">Hams</div>
+            </div>
+            <div class="mg-counter">
+              <button class="mg-btn mg-minus">−</button>
+              <button class="mg-btn mg-plus">+</button>
+            </div>
+          </div>
+          <div class="mg-chip" data-muscle="Calves">
+            <div class="mg-badge">0</div>
+            <div class="mg-info">
+              <div class="mg-name">🦶</div>
+              <div class="mg-label">Calves</div>
+            </div>
+            <div class="mg-counter">
+              <button class="mg-btn mg-minus">−</button>
+              <button class="mg-btn mg-plus">+</button>
+            </div>
+          </div>
+          <div class="mg-chip" data-muscle="Biceps">
             <div class="mg-badge">0</div>
             <div class="mg-info">
               <div class="mg-name">💪</div>
-              <div class="mg-label">Arms</div>
+              <div class="mg-label">Biceps</div>
+            </div>
+            <div class="mg-counter">
+              <button class="mg-btn mg-minus">−</button>
+              <button class="mg-btn mg-plus">+</button>
+            </div>
+          </div>
+          <div class="mg-chip" data-muscle="Triceps">
+            <div class="mg-badge">0</div>
+            <div class="mg-info">
+              <div class="mg-name">🏋️</div>
+              <div class="mg-label">Triceps</div>
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
@@ -1434,6 +1504,12 @@
 
   </div>
 
+  <!-- ═══ BOTTOM BAR ═══ -->
+  <div style="position:fixed;bottom:16px;right:20px;display:flex;gap:8px;z-index:100;">
+    <button id="backupBtn" title="Backup to Google Drive" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);">💾</button>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);">☀</button>
+  </div>
+
   <script>
     // ── API helper ──
     async function api(path, opts = {}) {
@@ -1448,21 +1524,59 @@
     }
     function todayStr() { return new Date().toISOString().split('T')[0]; }
 
-    // ── Live clock + greeting ──
+    // ── Live clock + date ──
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const WDAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     let userName = '';
     function tick() {
       const d = new Date();
       const h = d.getHours();
       const m = String(d.getMinutes()).padStart(2, '0');
       document.getElementById('clockDisplay').textContent = String(h).padStart(2,'0') + ':' + m;
+      const dateEl = document.getElementById('hdrDate');
+      if (dateEl) dateEl.textContent = WDAYS[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
+      const greetEl = document.getElementById('greetText');
       const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-      document.getElementById('greetText').textContent = userName ? (g + ', ' + userName) : g;
+      if (greetEl) greetEl.textContent = userName ? (g + ', ' + userName) : g;
     }
     tick();
     setInterval(tick, 30000);
+
+    // ── Weather (Open-Meteo, no API key) ──
+    const WX_CODES = {0:'Clear',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Icy fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Rain showers',81:'Rain showers',82:'Heavy showers',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'};
+    const WX_ICONS = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌦️',82:'⛈️',95:'⛈️',96:'⛈️',99:'⛈️'};
+    function loadWeather() {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(async pos => {
+        try {
+          const { latitude: lat, longitude: lon } = pos.coords;
+          const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=celsius`);
+          const data = await r.json();
+          const temp = Math.round(data.current.temperature_2m);
+          const code = data.current.weather_code;
+          const icon = WX_ICONS[code] || '🌡️';
+          const desc = WX_CODES[code] || '';
+          const el = document.getElementById('hdrWeather');
+          if (el) el.textContent = `${icon} ${temp}°C · ${desc}`;
+        } catch(e) {}
+      }, () => {});
+    }
+    loadWeather();
     api('/api/auth/me').then(r => {
       if (r?.user?.name) { userName = r.user.name.split(' ')[0]; tick(); }
     }).catch(() => {});
+
+    // ── Backup ──
+    document.getElementById('backupBtn').addEventListener('click', async () => {
+      const b = document.getElementById('backupBtn');
+      b.textContent = '⏳'; b.style.opacity = '0.5'; b.disabled = true;
+      try {
+        const r = await fetch('/api/backup/trigger', { method: 'POST', credentials: 'include' });
+        const d = await r.json();
+        b.textContent = r.ok ? '✅' : '❌';
+      } catch(e) { b.textContent = '❌'; }
+      setTimeout(() => { b.textContent = '💾'; b.style.opacity = ''; b.disabled = false; }, 2500);
+    });
 
     // ── Theme toggle ──
     const html = document.documentElement;
@@ -1530,6 +1644,7 @@
         <div class="dg-item ${g.completed ? 'done' : ''}" data-id="${g.id}" data-done="${g.completed}">
           <div class="dg-check"></div>
           <div class="dg-text">${g.icon ? g.icon + ' ' : ''}${g.title}</div>
+          <button class="dg-del" data-del-id="${g.id}" title="Delete">×</button>
         </div>
       `).join('');
       updateDGProgress();
@@ -1544,6 +1659,11 @@
       return { done, total, pct };
     }
     document.getElementById('dgList').addEventListener('click', async e => {
+      if (e.target.closest('.dg-del')) {
+        const id = e.target.closest('.dg-del').dataset.delId;
+        try { await api(`/api/goal-tracker/${id}`, { method: 'DELETE' }); refreshGoalTracker(); refreshRings(); } catch(e) {}
+        return;
+      }
       const item = e.target.closest('.dg-item');
       if (!item) return;
       const isDone = item.dataset.done === 'true';
@@ -1650,9 +1770,12 @@
           bpm: bpm ? parseInt(bpm) : null,
         }) });
       } catch (e) {}
-      document.getElementById('llDist').textContent = parseFloat(dist).toFixed(1) + ' km';
-      if (pace) document.getElementById('llPace').textContent = pace + ' /km';
-      document.getElementById('runLast').style.display = 'flex';
+      const llDist = document.getElementById('llDist');
+      const llPace = document.getElementById('llPace');
+      const runLast = document.getElementById('runLast');
+      if (llDist) llDist.textContent = parseFloat(dist).toFixed(1) + ' km';
+      if (pace && llPace) llPace.textContent = pace + ' /km';
+      if (runLast) runLast.style.display = 'flex';
       ['runDist','runPace','runCadence','runBPM'].forEach(id => document.getElementById(id).value = '');
       refreshRunWeek();
     });
@@ -1673,6 +1796,46 @@
     goalsCloseBtn.addEventListener('click', () => { goalsModal.classList.remove('open'); document.body.style.overflow = ''; });
     goalsModal.addEventListener('click', e => { if (e.target === goalsModal) { goalsModal.classList.remove('open'); document.body.style.overflow = ''; } });
 
+    // ── Meal List ──
+    async function refreshMealList() {
+      try {
+        const meals = await api('/api/meals?date=' + todayStr());
+        const el = document.getElementById('mealLogList');
+        if (!meals.length) { el.innerHTML = ''; return; }
+        el.innerHTML = meals.map(m => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--s2);border-radius:8px;font-size:12px;">
+            <span style="color:var(--t1);font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</span>
+            <span style="color:var(--t2);margin-left:10px;white-space:nowrap;">${m.calories||0} kcal · ${m.protein||0}g pro</span>
+            <button onclick="deleteMeal(${m.id})" style="margin-left:8px;background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0;line-height:1;">×</button>
+          </div>`).join('');
+      } catch(e) {}
+    }
+    window.deleteMeal = async (id) => {
+      try { await api('/api/meals/'+id, { method: 'DELETE' }); refreshMealList(); refreshRings(); } catch(e) {}
+    };
+
+    // ── AI Meal Input ──
+    const aiInput = document.getElementById('aiMealInput');
+    const aiBtn   = document.getElementById('aiMealBtn');
+    async function submitAIMeal() {
+      const text = aiInput.value.trim(); if (!text) return;
+      const orig = aiBtn.textContent;
+      aiBtn.textContent = '…'; aiBtn.disabled = true; aiInput.disabled = true;
+      try {
+        await fetch('/api/meals/parse', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+        aiInput.value = '';
+        aiBtn.textContent = '✅';
+        refreshMealList();
+        setTimeout(() => { aiBtn.textContent = orig; }, 1500);
+      } catch(e) {
+        aiBtn.textContent = '❌';
+        setTimeout(() => { aiBtn.textContent = orig; }, 1500);
+      }
+      aiBtn.disabled = false; aiInput.disabled = false;
+    }
+    aiBtn.addEventListener('click', submitAIMeal);
+    aiInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAIMeal(); });
+
     // ── Add Meal modal ──
     const addMealModal      = document.getElementById('addMealModal');
     const addMealCloseBtn   = document.getElementById('addMealCloseBtn');
@@ -1687,11 +1850,7 @@
       document.body.style.overflow = '';
       [addMealName, addMealCalories, addMealProtein, addMealCarbs, addMealFat].forEach(el => el.value = '');
     }
-    document.getElementById('addMealBtn').addEventListener('click', () => {
-      addMealModal.classList.add('open');
-      document.body.style.overflow = 'hidden';
-      addMealName.focus();
-    });
+    // addMealBtn removed — meals logged via AI input only
     addMealCloseBtn.addEventListener('click', closeAddMealModal);
     addMealModal.addEventListener('click', e => { if (e.target === addMealModal) closeAddMealModal(); });
     async function submitAddMeal() {
@@ -2088,9 +2247,12 @@
 
         if (data.runs.length) {
           const last = data.runs[data.runs.length - 1];
-          document.getElementById('llDist').textContent = Number(last.distance_km).toFixed(1) + ' km';
-          document.getElementById('llPace').textContent = (last.pace || '–') + ' /km';
-          document.getElementById('runLast').style.display = 'flex';
+          const elDist = document.getElementById('llDist');
+          const elPace = document.getElementById('llPace');
+          const elLast = document.getElementById('runLast');
+          if (elDist) elDist.textContent = Number(last.distance_km).toFixed(1) + ' km';
+          if (elPace) elPace.textContent = (last.pace || '–') + ' /km';
+          if (elLast) elLast.style.display = 'flex';
         }
       } catch (e) {}
     }
@@ -2129,17 +2291,25 @@
           : `<div style="font-size:11px;color:var(--t3);">No reports yet</div>`;
 
         document.getElementById('logsActivity').innerHTML = activity.slice(0, 20).map(a => `
-          <div style="display:flex;justify-content:space-between;gap:10px;font-size:10.5px;">
-            <span style="color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.label || a.action}</span>
+          <div style="display:flex;align-items:center;gap:10px;font-size:10.5px;" id="alog-${a.id}">
+            <span style="color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${a.label || a.action}</span>
             <span style="color:var(--t3);font-family:'DM Mono',monospace;white-space:nowrap;flex-shrink:0;">${new Date(a.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            <button onclick="deleteActivityLog(${a.id})" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0;line-height:1;flex-shrink:0;">×</button>
           </div>
         `).join('') || `<div style="font-size:11px;color:var(--t3);">No activity logged yet</div>`;
       } catch (e) {}
     }
+    window.deleteActivityLog = async (id) => {
+      try {
+        await api('/api/logs/activity/' + id, { method: 'DELETE' });
+        const el = document.getElementById('alog-' + id);
+        if (el) el.remove();
+      } catch(e) {}
+    };
     const logsModal    = document.getElementById('logsModal');
     const logsOpenBtn  = document.getElementById('logsOpenBtn');
     const logsCloseBtn = document.getElementById('logsCloseBtn');
-    logsOpenBtn.addEventListener('click', () => { logsModal.classList.add('open'); document.body.style.overflow = 'hidden'; refreshLogs(); });
+    logsOpenBtn.addEventListener('click', () => { logsModal.classList.add('open'); document.body.style.overflow = 'hidden'; refreshLogs(); refreshMealList(); });
     logsCloseBtn.addEventListener('click', () => { logsModal.classList.remove('open'); document.body.style.overflow = ''; });
     logsModal.addEventListener('click', e => { if (e.target === logsModal) { logsModal.classList.remove('open'); document.body.style.overflow = ''; } });
 
@@ -2154,7 +2324,9 @@
           switch (msg.type) {
             case 'rings_updated':
             case 'meal_logged':
+            case 'meals_updated':
               refreshRings();
+              refreshMealList();
               break;
             case 'goal_tracker_updated':
               refreshRings();
@@ -2239,6 +2411,7 @@
       Fitness
     </button>
   </nav>
+
 
 </body>
 </html>

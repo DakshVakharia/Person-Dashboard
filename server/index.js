@@ -30,6 +30,7 @@ import logsRoutes from './routes/logs.js';
 import goalTrackerRoutes from './routes/goalTracker.js';
 import runsRoutes from './routes/runs.js';
 import backupRoutes from './routes/backup.js';
+import chatRoutes from './routes/chat.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -111,6 +112,7 @@ app.use('/api/goal-tracker', goalTrackerRoutes);
 app.use('/api/runs', runsRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/backup', backupRoutes);
+app.use('/api/chat', chatRoutes);
 app.use('/api/workouts', workoutsRoutes);
 
 // Serve the new static dashboard front-end (Dashboard.html) — same-origin so

@@ -482,14 +482,29 @@
             <div class="mg-info"><div class="mg-name">🏋️</div><div class="mg-label">Shoulders</div></div>
             <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
           </div>
-          <div class="mg-chip" data-muscle="Legs">
+          <div class="mg-chip" data-muscle="Quads">
             <div class="mg-badge">0</div>
-            <div class="mg-info"><div class="mg-name">🦵</div><div class="mg-label">Legs</div></div>
+            <div class="mg-info"><div class="mg-name">🦵</div><div class="mg-label">Quads</div></div>
             <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
           </div>
-          <div class="mg-chip" data-muscle="Arms">
+          <div class="mg-chip" data-muscle="Hamstrings">
             <div class="mg-badge">0</div>
-            <div class="mg-info"><div class="mg-name">💪</div><div class="mg-label">Arms</div></div>
+            <div class="mg-info"><div class="mg-name">🦿</div><div class="mg-label">Hams</div></div>
+            <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
+          </div>
+          <div class="mg-chip" data-muscle="Calves">
+            <div class="mg-badge">0</div>
+            <div class="mg-info"><div class="mg-name">🦶</div><div class="mg-label">Calves</div></div>
+            <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
+          </div>
+          <div class="mg-chip" data-muscle="Biceps">
+            <div class="mg-badge">0</div>
+            <div class="mg-info"><div class="mg-name">💪</div><div class="mg-label">Biceps</div></div>
+            <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
+          </div>
+          <div class="mg-chip" data-muscle="Triceps">
+            <div class="mg-badge">0</div>
+            <div class="mg-info"><div class="mg-name">🏋️</div><div class="mg-label">Triceps</div></div>
             <div class="mg-counter"><button class="mg-btn mg-minus">−</button><button class="mg-btn mg-plus">+</button></div>
           </div>
           <div class="mg-chip" data-muscle="Core">
@@ -552,11 +567,6 @@
           <div class="run-field"><label>Avg BPM <span class="run-unit">bpm</span></label><input type="number" id="mRunBPM" placeholder="158" min="0"></div>
         </div>
         <button class="run-log-btn" id="mRunLogBtn">Log Run</button>
-        <div class="run-last" id="mRunLast" style="display:none;">
-          <div class="lbl" style="margin-bottom:2px;">Last Run</div>
-          <div class="run-last-row"><span class="run-last-key">Distance</span><span class="run-last-val" id="mLlDist">—</span></div>
-          <div class="run-last-row"><span class="run-last-key">Pace</span><span class="run-last-val" id="mLlPace">—</span></div>
-        </div>
       </div>
     </div>
 
@@ -581,6 +591,14 @@
     </div>
 
   </div><!-- /tab-content -->
+
+  <!-- AI meal input -->
+  <div style="padding:8px 14px;background:var(--bg);border-top:1px solid var(--bd);display:flex;gap:8px;align-items:center;flex-shrink:0;">
+    <input id="aiMealInput" type="text" placeholder="I had 2 eggs and toast…"
+      style="flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:9px 12px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--t1);outline:none;"
+      autocomplete="off" />
+    <button id="aiMealBtn" style="width:36px;height:36px;border-radius:10px;border:none;background:var(--green);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:16px;">↑</button>
+  </div>
 
   <!-- Tab bar -->
   <div class="tab-bar">
@@ -922,6 +940,27 @@
         ws.onclose=()=>setTimeout(connectWS,3000); ws.onerror=()=>ws.close();
       } catch(e){setTimeout(connectWS,3000);}
     }
+
+    // ── AI Meal Input ──
+    const aiInput = document.getElementById('aiMealInput');
+    const aiBtn   = document.getElementById('aiMealBtn');
+    async function submitAIMeal() {
+      const text = aiInput.value.trim(); if (!text) return;
+      aiBtn.textContent = '⏳'; aiBtn.disabled = true; aiInput.disabled = true;
+      try {
+        const r = await api('/api/meals/parse', { method: 'POST', body: JSON.stringify({ text }) });
+        aiInput.value = '';
+        aiBtn.textContent = '✅';
+        refreshRings();
+        setTimeout(() => { aiBtn.textContent = '↑'; }, 1500);
+      } catch(e) {
+        aiBtn.textContent = '❌';
+        setTimeout(() => { aiBtn.textContent = '↑'; }, 1500);
+      }
+      aiBtn.disabled = false; aiInput.disabled = false;
+    }
+    aiBtn.addEventListener('click', submitAIMeal);
+    aiInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAIMeal(); });
 
     // ── Init ──
     refreshRings();

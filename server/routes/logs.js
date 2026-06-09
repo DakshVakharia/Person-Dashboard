@@ -68,6 +68,15 @@ router.get('/activity', requireAuth, (req, res) => {
   }
 });
 
+router.delete('/activity/:id', requireAuth, (req, res) => {
+  try {
+    db.prepare('DELETE FROM activity_log WHERE id = ?').run(req.params.id);
+    res.json({ ok: true });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.get('/reports', requireAuth, (req, res) => {
   try {
     const reports = db.prepare('SELECT * FROM weekly_reports ORDER BY id DESC LIMIT 10').all();

@@ -1,0 +1,4 @@
+# Sensitive files — never read by Claude
+server/.env
+server/data/
+server/uploads/

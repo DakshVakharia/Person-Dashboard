@@ -9,144 +9,194 @@
     --green:  #2ADE80;
     --orange: #F07830;
     --blue:   #5BABFF;
-    --bg:   #0E0E12;
-    --s3:   #383848;
-    --t1:   #F0F0F6;
-    --t2:   #9898AA;
+    --bg:     #141418;
+    --s1:     #1E1E28;
+    --s2:     #2A2A36;
+    --bd:     #3A3A4E;
+    --t1:     #F0F0F6;
+    --t2:     #9898AA;
+    --t3:     #606072;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
   html, body {
     width: 100%; height: 100%;
-    background: var(--bg);
-    color: var(--t1);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: transparent;
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
+    font-family: -apple-system, 'Segoe UI', sans-serif;
   }
-  /* Drag the whole window by clicking anywhere (works in Chrome app-mode windows) */
-  body { -webkit-app-region: drag; }
-  .wrap {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; padding: 16px; gap: 12px;
+
+  .card {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    border: 1px solid var(--bd);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 16px 18px;
+    -webkit-app-region: drag;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   }
-  .svg-wrap { position: relative; width: 150px; height: 150px; }
-  .svg-wrap svg { transform: rotate(-90deg); display: block; }
+
+  /* top drag handle bar */
+  .drag-bar {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px; height: 3px;
+    background: var(--bd);
+    border-radius: 2px;
+  }
+
+  .rings-wrap {
+    position: relative;
+    width: 130px; height: 130px;
+    flex-shrink: 0;
+  }
+  .rings-wrap svg { transform: rotate(-90deg); display: block; }
   .ring-anim { transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1); }
+
   .center {
-    position: absolute; inset: 0; display: flex; flex-direction: column;
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
     align-items: center; justify-content: center;
   }
-  .score { font-family: 'Consolas', 'DM Mono', monospace; font-size: 26px; font-weight: 600; letter-spacing: -1px; }
-  .score-label { font-size: 8.5px; color: var(--t2); letter-spacing: 0.6px; text-transform: uppercase; margin-top: 2px; }
-  .legend { display: flex; gap: 16px; }
-  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--t2); font-variant-numeric: tabular-nums; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .stale { opacity: 0.4; }
+  .score {
+    font-family: 'Consolas', monospace;
+    font-size: 28px; font-weight: 600;
+    letter-spacing: -1.5px; color: var(--t1); line-height: 1;
+  }
+  .score-label {
+    font-size: 8px; color: var(--t3);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-top: 3px;
+  }
+
+  /* legend rows */
+  .legend { width: 100%; display: flex; flex-direction: column; gap: 7px; }
+  .leg-row { display: flex; align-items: center; gap: 7px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .leg-label { font-size: 10px; color: var(--t3); flex: 1; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .leg-val { font-family: 'Consolas', monospace; font-size: 11px; color: var(--t2); }
+  .leg-track { position: relative; height: 2px; background: var(--s2); border-radius: 2px; overflow: hidden; flex: 1; }
+  .leg-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+
+  .stale { opacity: 0.35; }
+
+  /* no-drag on interactive elements */
+  a, button { -webkit-app-region: no-drag; }
 </style>
 </head>
 <body>
-  <div class="wrap" id="wrap">
-    <div class="svg-wrap">
-      <svg width="150" height="150" viewBox="0 0 196 196" fill="none">
-        <circle cx="98" cy="98" r="86" stroke="var(--s3)" stroke-width="11"/>
-        <circle cx="98" cy="98" r="66" stroke="var(--s3)" stroke-width="11"/>
-        <circle cx="98" cy="98" r="46" stroke="var(--s3)" stroke-width="11"/>
-        <circle class="ring-anim" id="ringCalories" cx="98" cy="98" r="86"
-          stroke="var(--orange)" stroke-width="11"
-          stroke-dasharray="540" stroke-dashoffset="540" stroke-linecap="round"/>
-        <circle class="ring-anim" id="ringProtein" cx="98" cy="98" r="66"
-          stroke="var(--blue)" stroke-width="11"
-          stroke-dasharray="415" stroke-dashoffset="415" stroke-linecap="round"/>
-        <circle class="ring-anim" id="ringTasks" cx="98" cy="98" r="46"
-          stroke="var(--green)" stroke-width="11"
-          stroke-dasharray="289" stroke-dashoffset="289" stroke-linecap="round"/>
+  <div class="card" id="card">
+    <div class="drag-bar"></div>
+
+    <div class="rings-wrap">
+      <svg width="130" height="130" viewBox="0 0 130 130" fill="none">
+        <circle cx="65" cy="65" r="56" stroke="#2A2A36" stroke-width="9"/>
+        <circle cx="65" cy="65" r="42" stroke="#2A2A36" stroke-width="9"/>
+        <circle cx="65" cy="65" r="28" stroke="#2A2A36" stroke-width="9"/>
+        <circle class="ring-anim" id="ringCalories" cx="65" cy="65" r="56"
+          stroke="var(--orange)" stroke-width="9"
+          stroke-dasharray="352" stroke-dashoffset="352" stroke-linecap="round"/>
+        <circle class="ring-anim" id="ringProtein" cx="65" cy="65" r="42"
+          stroke="var(--blue)" stroke-width="9"
+          stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"/>
+        <circle class="ring-anim" id="ringTasks" cx="65" cy="65" r="28"
+          stroke="var(--green)" stroke-width="9"
+          stroke-dasharray="176" stroke-dashoffset="176" stroke-linecap="round"/>
       </svg>
       <div class="center">
         <div class="score" id="score">--</div>
-        <div class="score-label">Daily score</div>
+        <div class="score-label">Score</div>
       </div>
     </div>
+
     <div class="legend">
-      <div class="leg-item"><span class="dot" style="background:var(--orange)"></span><span id="calPct">--%</span></div>
-      <div class="leg-item"><span class="dot" style="background:var(--blue)"></span><span id="proPct">--%</span></div>
-      <div class="leg-item"><span class="dot" style="background:var(--green)"></span><span id="taskPct">--%</span></div>
+      <div class="leg-row">
+        <div class="dot" style="background:var(--orange)"></div>
+        <div class="leg-label">Cal</div>
+        <div class="leg-track"><div class="leg-fill" id="calBar" style="width:0%;background:var(--orange)"></div></div>
+        <div class="leg-val" id="calPct">--%</div>
+      </div>
+      <div class="leg-row">
+        <div class="dot" style="background:var(--blue)"></div>
+        <div class="leg-label">Pro</div>
+        <div class="leg-track"><div class="leg-fill" id="proBar" style="width:0%;background:var(--blue)"></div></div>
+        <div class="leg-val" id="proPct">--%</div>
+      </div>
+      <div class="leg-row">
+        <div class="dot" style="background:var(--green)"></div>
+        <div class="leg-label">Tasks</div>
+        <div class="leg-track"><div class="leg-fill" id="taskBar" style="width:0%;background:var(--green)"></div></div>
+        <div class="leg-val" id="taskPct">--%</div>
+      </div>
     </div>
   </div>
 
 <script>
   function todayStr() {
     const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
   async function api(path) {
     const res = await fetch(path, { credentials: 'include' });
-    if (!res.ok) throw new Error('request failed: ' + path);
+    if (!res.ok) throw new Error('failed');
     return res.json();
   }
-  function setRing(id, circumference, pct) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const offset = Math.max(0, Math.round(circumference * (1 - Math.min(Math.max(pct, 0), 100) / 100)));
-    el.setAttribute('stroke-dashoffset', offset);
+  function setRing(id, c, pct) {
+    const el = document.getElementById(id); if (!el) return;
+    el.setAttribute('stroke-dashoffset', Math.max(0, Math.round(c * (1 - Math.min(Math.max(pct,0),100)/100))));
   }
 
   async function refresh() {
     try {
       const [rings, meals, settings, goals] = await Promise.all([
-        api('/api/rings/today'),
-        api('/api/meals?date=' + todayStr()),
-        api('/api/goals'),
-        api('/api/goal-tracker'),
+        api('/api/rings/today'), api('/api/meals?date='+todayStr()),
+        api('/api/goals'),       api('/api/goal-tracker'),
       ]);
-      const calorieGoal = parseInt(settings.calorie_goal || '2200');
-      const proteinGoal = rings.protein_goal || parseInt(settings.protein_goal || '130');
-      const calories = meals.reduce((s, m) => s + (m.calories || 0), 0);
-      const protein  = rings.protein_intake || 0;
+      const cg = parseInt(settings.calorie_goal||'2200'), pg = rings.protein_goal||parseInt(settings.protein_goal||'130');
+      const cal = meals.reduce((s,m)=>s+(m.calories||0),0), pro = rings.protein_intake||0;
+      const daily = goals.filter(g=>g.period==='daily'), done = daily.filter(g=>g.completed).length, total = daily.length;
+      const cp = cg ? Math.min(100,Math.round(cal/cg*100)) : 0;
+      const pp = pg ? Math.min(100,Math.round(pro/pg*100)) : 0;
+      const tp = total ? Math.round(done/total*100) : 0;
 
-      const daily = goals.filter(g => g.period === 'daily');
-      const done  = daily.filter(g => g.completed).length;
-      const total = daily.length;
-
-      const calPct  = calorieGoal ? Math.min(100, Math.round((calories / calorieGoal) * 100)) : 0;
-      const proPct  = proteinGoal ? Math.min(100, Math.round((protein / proteinGoal) * 100)) : 0;
-      const taskPct = total ? Math.round((done / total) * 100) : 0;
-
-      document.getElementById('calPct').textContent  = calPct + '%';
-      document.getElementById('proPct').textContent  = proPct + '%';
-      document.getElementById('taskPct').textContent = taskPct + '%';
-
-      setRing('ringCalories', 540, calPct);
-      setRing('ringProtein', 415, proPct);
-      setRing('ringTasks', 289, taskPct);
-
-      const score = Math.round(((calPct + proPct + taskPct) / 3) / 10 * 10) / 10;
-      document.getElementById('score').textContent = score.toFixed(1);
-      document.getElementById('wrap').classList.remove('stale');
-    } catch (e) {
-      document.getElementById('wrap').classList.add('stale');
+      setRing('ringCalories',352,cp); setRing('ringProtein',264,pp); setRing('ringTasks',176,tp);
+      document.getElementById('calPct').textContent  = cp+'%';
+      document.getElementById('proPct').textContent  = pp+'%';
+      document.getElementById('taskPct').textContent = tp+'%';
+      document.getElementById('calBar').style.width  = cp+'%';
+      document.getElementById('proBar').style.width  = pp+'%';
+      document.getElementById('taskBar').style.width = tp+'%';
+      document.getElementById('score').textContent   = (Math.round(((cp+pp+tp)/3)/10*10)/10).toFixed(1);
+      document.getElementById('card').classList.remove('stale');
+    } catch(e) {
+      document.getElementById('card').classList.add('stale');
     }
   }
 
-  // Live updates over the same WebSocket bus the main dashboard uses
   function connectWS() {
     try {
-      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const ws = new WebSocket(`${proto}//${location.host}`);
-      ws.onmessage = (ev) => {
-        let msg;
-        try { msg = JSON.parse(ev.data); } catch (e) { return; }
-        if (['rings_updated', 'goals_updated', 'goal_tracker_updated', 'meals_updated', 'habits_updated'].includes(msg.type)) {
-          refresh();
-        }
+      const ws = new WebSocket((location.protocol==='https:'?'wss:':'ws:')+`//${location.host}`);
+      ws.onmessage = ev => {
+        let msg; try { msg=JSON.parse(ev.data); } catch(e) { return; }
+        if (['rings_updated','goals_updated','goal_tracker_updated','meals_updated','habits_updated'].includes(msg.type)) refresh();
       };
       ws.onclose = () => setTimeout(connectWS, 3000);
       ws.onerror = () => ws.close();
-    } catch (e) { setTimeout(connectWS, 3000); }
+    } catch(e) { setTimeout(connectWS, 3000); }
   }
 
   refresh();
-  setInterval(refresh, 60 * 1000);
+  setInterval(refresh, 60000);
   connectWS();
 </script>
 </body>
