@@ -83,9 +83,9 @@
     .rings-header {
       background: var(--s1);
       border-bottom: 1px solid var(--bd);
-      padding: 16px 18px 20px;
+      padding: 16px 18px 14px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 20px;
       flex-shrink: 0;
     }
@@ -121,7 +121,7 @@
       text-transform: uppercase;
     }
 
-    .rings-legend { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .rings-legend { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 
     .rl-item { display: flex; flex-direction: column; gap: 3px; }
     .rl-top { display: flex; align-items: center; justify-content: space-between; }
@@ -137,6 +137,26 @@
     }
     .rl-track { height: 3px; background: var(--s3); border-radius: 2px; overflow: hidden; }
     .rl-fill  { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+
+    /* AI meal bar inside rings legend */
+    .ai-meal-bar {
+      display: flex; gap: 6px; align-items: center; margin-top: 4px;
+    }
+    .ai-meal-bar input {
+      flex: 1; min-width: 0;
+      background: var(--s2); border: 1px solid var(--bd);
+      border-radius: 9px; padding: 7px 9px;
+      font-family: 'Space Grotesk', sans-serif; font-size: 11.5px;
+      color: var(--t1); outline: none;
+    }
+    .ai-meal-bar input::placeholder { color: var(--t3); }
+    .ai-meal-bar input:focus { border-color: var(--green); }
+    .ai-meal-bar button {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: none; background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; font-size: 14px; color: #09090B;
+    }
 
     /* ── Tab bar ── */
     .tab-bar {
@@ -157,7 +177,7 @@
       background: transparent;
       cursor: pointer;
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 600;
       color: var(--t3);
       letter-spacing: 0.03em;
@@ -301,20 +321,66 @@
       display: flex; align-items: center; justify-content: center;
     }
 
-    .agenda { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+    /* AI calendar bar */
+    .ai-cal-bar {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .ai-cal-bar input {
+      flex: 1; background: var(--s2); border: 1px solid var(--bd);
+      border-radius: 9px; padding: 9px 11px;
+      font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+      color: var(--t1); outline: none;
+    }
+    .ai-cal-bar input::placeholder { color: var(--t3); }
+    .ai-cal-bar input:focus { border-color: var(--green); }
+    .ai-cal-bar button {
+      padding: 9px 14px; border-radius: 9px;
+      border: none; background: var(--green);
+      color: #09090B; font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+
+    .agenda { display: flex; flex-direction: column; gap: 6px; }
     .ag-item {
-      display: flex; align-items: flex-start; gap: 10px;
+      display: flex; align-items: center; gap: 8px;
       padding: 10px 12px; border-radius: 10px; background: var(--s2);
     }
-    .ag-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .ag-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .ag-body { flex: 1; min-width: 0; }
     .ag-title { font-size: 13px; font-weight: 500; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ag-sub { font-size: 11px; color: var(--t2); margin-top: 2px; }
     .ag-time {
-      font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600;
+      font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600;
       color: var(--t1); flex-shrink: 0;
-      background: var(--s3); padding: 3px 7px; border-radius: 6px;
+      background: var(--s3); padding: 3px 6px; border-radius: 6px;
     }
+    .ag-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .ag-btn {
+      width: 26px; height: 26px; border-radius: 7px;
+      border: 1px solid var(--bd); background: var(--s3);
+      color: var(--t2); cursor: pointer; font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ag-btn.del { color: #FF6B6B; }
+
+    /* ── Meals tab ── */
+    .meal-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 0; border-bottom: 1px solid var(--bd);
+    }
+    .meal-item:last-child { border-bottom: none; }
+    .meal-body { flex: 1; min-width: 0; }
+    .meal-name { font-size: 13px; font-weight: 500; color: var(--t1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meal-macros { font-size: 10.5px; color: var(--t2); margin-top: 2px; }
+    .meal-cal { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 600; color: var(--t1); flex-shrink: 0; }
+    .meal-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .meal-btn {
+      width: 26px; height: 26px; border-radius: 7px;
+      border: 1px solid var(--bd); background: var(--s2);
+      color: var(--t2); cursor: pointer; font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .meal-btn.del { color: #FF6B6B; }
 
     /* ── Daily goals ── */
     .dg-item {
@@ -452,9 +518,10 @@
         </div>
         <div class="rl-track"><div class="rl-fill" id="mTaskFill" style="width:0%;background:var(--green)"></div></div>
       </div>
-      <!-- Log meal button tucked into legend -->
-      <div style="display:flex;justify-content:flex-end;margin-top:2px;">
-        <button id="mAddMealBtn" style="font-size:11px;font-weight:700;font-family:'Space Grotesk',sans-serif;padding:4px 10px;border-radius:7px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);cursor:pointer;">+ Meal</button>
+      <!-- AI Meal input bar -->
+      <div class="ai-meal-bar">
+        <input id="mAiMealInput" type="text" placeholder="I had 2 eggs and toast…" autocomplete="off" />
+        <button id="mAiMealBtn">↑</button>
       </div>
     </div>
   </div>
@@ -567,6 +634,20 @@
           <div class="run-field"><label>Avg BPM <span class="run-unit">bpm</span></label><input type="number" id="mRunBPM" placeholder="158" min="0"></div>
         </div>
         <button class="run-log-btn" id="mRunLogBtn">Log Run</button>
+        <div class="run-last" id="mRunLast" style="display:none;">
+          <div class="run-last-row">
+            <div class="run-last-key">Last run — distance</div>
+            <div class="run-last-val" id="mLlDist">—</div>
+          </div>
+          <div class="run-last-row">
+            <div class="run-last-key">Pace</div>
+            <div class="run-last-val" id="mLlPace">—</div>
+          </div>
+          <div class="run-last-row">
+            <div class="run-last-key">BPM</div>
+            <div class="run-last-val" id="mLlBpm">—</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -584,60 +665,80 @@
             <button class="cal-nav-btn" id="dayNext" style="width:32px;height:32px;font-size:16px;">›</button>
           </div>
         </div>
+        <!-- AI Calendar input -->
+        <div class="ai-cal-bar">
+          <input id="mAiCalInput" type="text" placeholder="dentist tomorrow at 3pm…" autocomplete="off" />
+          <button id="mAiCalBtn">↑</button>
+        </div>
         <div class="agenda" id="agendaList">
           <div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Loading…</div>
         </div>
       </div>
     </div>
 
-  </div><!-- /tab-content -->
+    <!-- Meals -->
+    <div class="tab-panel" id="panel-meals">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="lbl" style="margin-bottom:0;">Today's Meals</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="mMealsTotalCal" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--t2);">-- kcal</span>
+            <button id="mMealsAddBtn" style="width:24px;height:24px;border-radius:7px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+          </div>
+        </div>
+        <div id="mMealsList">
+          <div style="color:var(--t3);font-size:12px;padding:6px 0;text-align:center;">No meals logged today</div>
+        </div>
+      </div>
+    </div>
 
-  <!-- AI meal input -->
-  <div style="padding:8px 14px;background:var(--bg);border-top:1px solid var(--bd);display:flex;gap:8px;align-items:center;flex-shrink:0;">
-    <input id="aiMealInput" type="text" placeholder="I had 2 eggs and toast…"
-      style="flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:9px 12px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--t1);outline:none;"
-      autocomplete="off" />
-    <button id="aiMealBtn" style="width:36px;height:36px;border-radius:10px;border:none;background:var(--green);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:16px;">↑</button>
-  </div>
+  </div><!-- /tab-content -->
 
   <!-- Tab bar -->
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="muscles">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
         <path d="M4 10c0-2 1.5-3.5 3-3.5s2 1 3 1 1.5-1 3-1 3 1.5 3 3.5-1.5 4-3 4-2-1-3-1-1.5 1-3 1-3-2-3-4Z"/>
         <path d="M2 10h2M16 10h2"/>
       </svg>
       Muscles
     </button>
     <button class="tab-btn" data-tab="habits">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="14" height="14" rx="3"/>
         <path d="M7 10l2 2 4-4"/>
       </svg>
       Habits
     </button>
     <button class="tab-btn" data-tab="run">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 14l4-5 3 3 4-6 3 3"/>
       </svg>
       Run
     </button>
     <button class="tab-btn" data-tab="calendar">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
         <rect x="3" y="4" width="14" height="13" rx="2.5"/>
         <path d="M3 8h14M7 2v3M13 2v3"/>
       </svg>
       Calendar
     </button>
+    <button class="tab-btn" data-tab="meals">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 3v5a3 3 0 0 0 6 0V3M9 3v14M14 3c0 4 2 5 2 8a2 2 0 0 1-4 0"/>
+      </svg>
+      Meals
+    </button>
   </div>
 
-  <!-- Add Meal (bottom sheet) -->
+  <!-- Add / Edit Meal (bottom sheet) -->
   <div class="modal-backdrop" id="mAddMealModal">
     <div class="modal-sheet">
       <div class="modal-hdr">
-        <span class="modal-ttl">Log a Meal</span>
+        <span class="modal-ttl" id="mMealModalTitle">Log a Meal</span>
         <button class="modal-x" id="mMealClose">&times;</button>
       </div>
+      <input type="hidden" id="mMealEditId">
       <div class="mf"><label>Name</label><input type="text" id="mMealName" placeholder="e.g. Chicken &amp; rice" maxlength="80"></div>
       <div class="mf-2col">
         <div class="mf"><label>Calories <span class="run-unit">kcal</span></label><input type="number" id="mMealCal" placeholder="450" min="0"></div>
@@ -662,6 +763,21 @@
     </div>
   </div>
 
+  <!-- Calendar Edit (bottom sheet) -->
+  <div class="modal-backdrop" id="mCalEditModal">
+    <div class="modal-sheet">
+      <div class="modal-hdr">
+        <span class="modal-ttl">Edit Event</span>
+        <button class="modal-x" id="mCalEditClose">&times;</button>
+      </div>
+      <input type="hidden" id="mCalEditId">
+      <div class="mf"><label>Title</label><input type="text" id="mCalEditTitle" placeholder="Event title" maxlength="120"></div>
+      <div class="mf"><label>Start</label><input type="datetime-local" id="mCalEditStart"></div>
+      <div class="mf"><label>End</label><input type="datetime-local" id="mCalEditEnd"></div>
+      <button class="m-submit" id="mCalEditSave">Save Changes</button>
+    </div>
+  </div>
+
   <script>
     // ── API ──
     async function api(path, opts = {}) {
@@ -672,6 +788,9 @@
     }
     function todayStr() {
       const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+    function localDateStr(d) {
       return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
 
@@ -735,7 +854,7 @@
       try {
         const today = new Date(), dow = today.getDay()||7;
         const mon = new Date(today); mon.setHours(0,0,0,0); mon.setDate(today.getDate()-(dow-1));
-        const ws = mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
+        const ws = localDateStr(mon);
         const data = await api('/api/workouts?week_start='+ws);
         const counts = {}; data.forEach(w=>{ counts[w.muscle_group]=(counts[w.muscle_group]||0)+(w.sets||1); });
         document.querySelectorAll('.mg-chip').forEach(chip => {
@@ -821,146 +940,320 @@
     // ── Run ──
     async function refreshRun() {
       try {
-        const today=new Date(), dow=today.getDay()||7;
-        const mon=new Date(today); mon.setHours(0,0,0,0); mon.setDate(today.getDate()-(dow-1));
-        const ws=mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
-        const runs=await api('/api/runs?week_start='+ws);
-        const byDay={}; runs.forEach(r=>{byDay[r.date]=(byDay[r.date]||0)+r.distance_km;});
-        const total=runs.reduce((s,r)=>s+r.distance_km,0);
-        document.getElementById('mRunCount').textContent=runs.length;
-        document.getElementById('mRunMeta').textContent='/ 5 runs · '+total.toFixed(1)+' km';
-        const days=Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
-        const maxKm=Math.max(...days.map(d=>byDay[d.toISOString().split('T')[0]]||0),0.1);
-        const todS=todayStr();
-        document.getElementById('mRunBars').innerHTML=days.map((d,i)=>{
-          const ds=d.toISOString().split('T')[0], km=byDay[ds]||0, pct=Math.round(km/maxKm*100), isT=ds===todS;
-          return `<div class="run-col"><div class="run-track${isT?' today-t':''}"><div class="run-bar" style="height:${pct}%"></div></div><div class="run-dl${isT?' today-dl':''}">${DL[i]}</div></div>`;
+        const data  = await api('/api/runs/week');
+        const runs  = data.runs  || [];
+        const days  = data.days  || [];   // 7 items Mon–Sun, already 0-filled
+        const todS  = todayStr();
+
+        document.getElementById('mRunCount').textContent = data.total_runs;
+        document.getElementById('mRunMeta').textContent  = '/ 5 runs · ' + data.total_distance_km.toFixed(1) + ' km';
+
+        const maxKm = Math.max(...days.map(d => d.distance_km), 0.1);
+        document.getElementById('mRunBars').innerHTML = days.map((d, i) => {
+          const pct = Math.round(d.distance_km / maxKm * 100);
+          const isT = d.date === todS;
+          return `<div class="run-col">
+            <div class="run-track${isT ? ' today-t' : ''}">
+              <div class="run-bar" style="height:${pct}%"></div>
+            </div>
+            <div class="run-dl${isT ? ' today-dl' : ''}">${DL[i]}</div>
+          </div>`;
         }).join('');
-        if (runs.length>0) {
-          const last=runs[0];
-          document.getElementById('mLlDist').textContent=last.distance_km.toFixed(1)+' km';
-          document.getElementById('mLlPace').textContent=last.pace?last.pace+' /km':'—';
-          document.getElementById('mRunLast').style.display='flex';
+
+        const lastEl = document.getElementById('mRunLast');
+        if (runs.length > 0) {
+          // runs are ordered ASC; last element is most recent
+          const last = runs[runs.length - 1];
+          document.getElementById('mLlDist').textContent = last.distance_km.toFixed(1) + ' km';
+          document.getElementById('mLlPace').textContent = last.pace   ? last.pace + ' /km' : '—';
+          document.getElementById('mLlBpm').textContent  = last.bpm    ? last.bpm  + ' bpm' : '—';
+          if (lastEl) lastEl.style.display = 'flex';
+        } else {
+          if (lastEl) lastEl.style.display = 'none';
         }
       } catch(e) {}
     }
     document.getElementById('mRunLogBtn').addEventListener('click', async () => {
-      const dist=document.getElementById('mRunDist').value; if (!dist) return;
-      const today=new Date(), dow=today.getDay()||7;
-      const mon=new Date(today); mon.setHours(0,0,0,0); mon.setDate(today.getDate()-(dow-1));
-      const ws=mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');
+      const dist = document.getElementById('mRunDist').value; if (!dist) return;
       try {
-        await api('/api/runs',{method:'POST',body:JSON.stringify({
-          date:todayStr(), week_start_date:ws, distance_km:parseFloat(dist),
-          pace:document.getElementById('mRunPace').value||null,
-          cadence:document.getElementById('mRunCadence').value?parseInt(document.getElementById('mRunCadence').value):null,
-          bpm:document.getElementById('mRunBPM').value?parseInt(document.getElementById('mRunBPM').value):null,
+        await api('/api/runs', { method: 'POST', body: JSON.stringify({
+          date:     todayStr(),
+          distance_km: parseFloat(dist),
+          pace:    document.getElementById('mRunPace').value    || null,
+          cadence: document.getElementById('mRunCadence').value ? parseInt(document.getElementById('mRunCadence').value) : null,
+          bpm:     document.getElementById('mRunBPM').value     ? parseInt(document.getElementById('mRunBPM').value)     : null,
         })});
-        ['mRunDist','mRunPace','mRunCadence','mRunBPM'].forEach(id=>document.getElementById(id).value='');
+        ['mRunDist','mRunPace','mRunCadence','mRunBPM'].forEach(id => document.getElementById(id).value = '');
         refreshRun();
-      } catch(e){ alert('Failed to log run'); }
+      } catch(e) { alert('Failed to log run'); }
     });
 
     // ── Calendar ──
-    let calDate=new Date(); calDate.setHours(0,0,0,0);
-    function cds(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+    let calDate = new Date(); calDate.setHours(0,0,0,0);
+    let currentMobileAgendaEvents = [];
+
+    function cds(d){ return localDateStr(d); }
     function renderDayLabel(){
-      const now=new Date(); now.setHours(0,0,0,0);
-      const diff=Math.round((calDate-now)/86400000);
-      const sub=diff===0?'Today':diff===1?'Tomorrow':diff===-1?'Yesterday':'';
-      document.getElementById('agendaDay').textContent=WDAYS[calDate.getDay()]+', '+calDate.getDate()+' '+MONTHS[calDate.getMonth()];
-      const dl=document.getElementById('agendaDayLabel'); dl.textContent=sub; dl.style.display=sub?'':'none';
+      const now = new Date(); now.setHours(0,0,0,0);
+      const diff = Math.round((calDate - now) / 86400000);
+      const sub = diff===0?'Today':diff===1?'Tomorrow':diff===-1?'Yesterday':'';
+      document.getElementById('agendaDay').textContent = WDAYS[calDate.getDay()]+', '+calDate.getDate()+' '+MONTHS[calDate.getMonth()];
+      const dl = document.getElementById('agendaDayLabel'); dl.textContent = sub; dl.style.display = sub ? '' : 'none';
     }
+    const CAL_COLS = ['var(--green)','var(--blue)','var(--orange)','var(--purple)','var(--gold)'];
     async function refreshCalendar(){
       renderDayLabel();
-      const list=document.getElementById('agendaList');
-      list.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Loading…</div>';
+      const list = document.getElementById('agendaList');
+      list.innerHTML = '<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Loading…</div>';
       try {
-        const events=await api('/api/calendar/events?date='+cds(calDate));
-        if (!events.length){list.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Schedule is clear</div>';return;}
-        const cols=['var(--green)','var(--blue)','var(--orange)','var(--purple)','var(--gold)'];
-        list.innerHTML=events.map((ev,i)=>{
-          const time=ev.start?.dateTime?new Date(ev.start.dateTime).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}):'All day';
-          return `<div class="ag-item"><div class="ag-dot" style="background:${cols[i%cols.length]}"></div><div class="ag-body"><div class="ag-title">${ev.summary||'(no title)'}</div>${ev.location?`<div class="ag-sub">${ev.location}</div>`:''}</div><div class="ag-time">${time}</div></div>`;
+        const events = await api('/api/calendar/events?date='+cds(calDate));
+        currentMobileAgendaEvents = events;
+        if (!events.length){
+          list.innerHTML = '<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Schedule is clear</div>';
+          return;
+        }
+        list.innerHTML = events.map((ev,i) => {
+          const time = ev.start?.dateTime
+            ? new Date(ev.start.dateTime).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})
+            : 'All day';
+          return `<div class="ag-item" data-id="${ev.id}">
+            <div class="ag-dot" style="background:${CAL_COLS[i%CAL_COLS.length]}"></div>
+            <div class="ag-body">
+              <div class="ag-title">${ev.summary||'(no title)'}</div>
+              ${ev.location?`<div class="ag-sub">${ev.location}</div>`:''}
+            </div>
+            <div class="ag-time">${time}</div>
+            <div class="ag-actions">
+              <button class="ag-btn edit-ev" title="Edit">✏</button>
+              <button class="ag-btn del del-ev" title="Delete">×</button>
+            </div>
+          </div>`;
         }).join('');
-      } catch(e){list.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Could not load events</div>';}
+        // Edit buttons
+        list.querySelectorAll('.edit-ev').forEach((btn, i) => {
+          btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const ev = events[i];
+            document.getElementById('mCalEditId').value = ev.id;
+            document.getElementById('mCalEditTitle').value = ev.summary || '';
+            if (ev.start?.dateTime) {
+              const toLocal = s => { const d = new Date(s); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+              document.getElementById('mCalEditStart').value = toLocal(ev.start.dateTime);
+              document.getElementById('mCalEditEnd').value   = toLocal(ev.end?.dateTime || ev.start.dateTime);
+            } else {
+              document.getElementById('mCalEditStart').value = '';
+              document.getElementById('mCalEditEnd').value   = '';
+            }
+            document.getElementById('mCalEditModal').classList.add('open');
+          });
+        });
+        // Delete buttons
+        list.querySelectorAll('.del-ev').forEach((btn, i) => {
+          btn.addEventListener('click', async e => {
+            e.stopPropagation();
+            const ev = events[i]; if (!ev) return;
+            btn.textContent = '…'; btn.disabled = true;
+            try {
+              await api(`/api/calendar/events/${ev.id}`, { method: 'DELETE' });
+              refreshCalendar();
+            } catch(err) { btn.textContent = '×'; btn.disabled = false; }
+          });
+        });
+      } catch(e){
+        list.innerHTML = '<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;">Could not load events</div>';
+      }
     }
-    document.getElementById('dayPrev').addEventListener('click',()=>{calDate.setDate(calDate.getDate()-1);refreshCalendar();});
-    document.getElementById('dayNext').addEventListener('click',()=>{calDate.setDate(calDate.getDate()+1);refreshCalendar();});
-    document.getElementById('calRefresh').addEventListener('click',async()=>{
-      const b=document.getElementById('calRefresh'); b.style.opacity='0.4'; await refreshCalendar(); b.style.opacity='';
+    document.getElementById('dayPrev').addEventListener('click', () => { calDate.setDate(calDate.getDate()-1); refreshCalendar(); });
+    document.getElementById('dayNext').addEventListener('click', () => { calDate.setDate(calDate.getDate()+1); refreshCalendar(); });
+    document.getElementById('calRefresh').addEventListener('click', async () => {
+      const b = document.getElementById('calRefresh'); b.style.opacity='0.4'; await refreshCalendar(); b.style.opacity='';
     });
 
-    // ── Add Meal ──
-    document.getElementById('mAddMealBtn').addEventListener('click',()=>document.getElementById('mAddMealModal').classList.add('open'));
-    document.getElementById('mMealClose').addEventListener('click',()=>document.getElementById('mAddMealModal').classList.remove('open'));
-    document.getElementById('mMealSubmit').addEventListener('click', async () => {
-      const name=document.getElementById('mMealName').value.trim(); if (!name) return;
+    // Calendar edit modal
+    document.getElementById('mCalEditClose').addEventListener('click', () => document.getElementById('mCalEditModal').classList.remove('open'));
+    document.getElementById('mCalEditModal').addEventListener('click', e => { if (e.target.id === 'mCalEditModal') document.getElementById('mCalEditModal').classList.remove('open'); });
+    document.getElementById('mCalEditSave').addEventListener('click', async () => {
+      const id    = document.getElementById('mCalEditId').value;
+      const title = document.getElementById('mCalEditTitle').value.trim();
+      const start = document.getElementById('mCalEditStart').value;
+      const end   = document.getElementById('mCalEditEnd').value;
+      if (!id || !title) return;
+      const btn = document.getElementById('mCalEditSave');
+      btn.textContent = '…'; btn.disabled = true;
       try {
-        await api('/api/meals',{method:'POST',body:JSON.stringify({
-          name, date:todayStr(),
-          calories:parseFloat(document.getElementById('mMealCal').value)||0,
-          protein:parseFloat(document.getElementById('mMealPro').value)||0,
-          carbs:parseFloat(document.getElementById('mMealCarbs').value)||0,
-          fat:parseFloat(document.getElementById('mMealFat').value)||0,
-        })});
-        ['mMealName','mMealCal','mMealPro','mMealCarbs','mMealFat'].forEach(id=>document.getElementById(id).value='');
-        document.getElementById('mAddMealModal').classList.remove('open');
-        refreshRings();
-      } catch(e){ alert('Failed to log meal'); }
+        const body = { summary: title };
+        if (start) { body.start_time = start; body.end_time = end || start; }
+        await api(`/api/calendar/events/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        document.getElementById('mCalEditModal').classList.remove('open');
+        refreshCalendar();
+      } catch(e) {}
+      btn.textContent = 'Save Changes'; btn.disabled = false;
     });
-    // Close on backdrop tap
-    ['mAddMealModal','mAddGoalModal'].forEach(id=>{
-      document.getElementById(id).addEventListener('click',e=>{if(e.target.id===id)document.getElementById(id).classList.remove('open');});
+
+    // AI Calendar input
+    const mAiCalInput = document.getElementById('mAiCalInput');
+    const mAiCalBtn   = document.getElementById('mAiCalBtn');
+    async function submitMobileAICalEvent() {
+      const text = mAiCalInput.value.trim(); if (!text) return;
+      const orig = mAiCalBtn.textContent;
+      mAiCalBtn.textContent = '…'; mAiCalBtn.disabled = true; mAiCalInput.disabled = true;
+      try {
+        const r = await fetch('/api/calendar/parse', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, events: currentMobileAgendaEvents })
+        });
+        if (!r.ok) throw new Error();
+        mAiCalInput.value = '';
+        mAiCalBtn.textContent = '✅';
+        refreshCalendar();
+        setTimeout(() => { mAiCalBtn.textContent = orig; }, 1500);
+      } catch(e) {
+        mAiCalBtn.textContent = '❌';
+        setTimeout(() => { mAiCalBtn.textContent = orig; }, 1500);
+      }
+      mAiCalBtn.disabled = false; mAiCalInput.disabled = false;
+    }
+    mAiCalBtn.addEventListener('click', submitMobileAICalEvent);
+    mAiCalInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitMobileAICalEvent(); });
+
+    // ── Meals tab ──
+    async function refreshMeals() {
+      try {
+        const meals = await api('/api/meals?date='+todayStr());
+        const list  = document.getElementById('mMealsList');
+        const totalCal = meals.reduce((s,m) => s+(m.calories||0), 0);
+        document.getElementById('mMealsTotalCal').textContent = Math.round(totalCal)+' kcal';
+        if (!meals.length) {
+          list.innerHTML = '<div style="color:var(--t3);font-size:12px;padding:6px 0;text-align:center;">No meals logged today</div>';
+          return;
+        }
+        list.innerHTML = meals.map(m =>
+          `<div class="meal-item" data-id="${m.id}">
+            <div class="meal-body">
+              <div class="meal-name">${m.name}</div>
+              <div class="meal-macros">${m.protein?m.protein+'g protein · ':''}${m.carbs?m.carbs+'g carbs · ':''}${m.fat?m.fat+'g fat':''}</div>
+            </div>
+            <div class="meal-cal">${Math.round(m.calories||0)}</div>
+            <div class="meal-actions">
+              <button class="meal-btn edit-meal" title="Edit">✏</button>
+              <button class="meal-btn del del-meal" title="Delete">×</button>
+            </div>
+          </div>`
+        ).join('');
+        list.querySelectorAll('.edit-meal').forEach((btn, i) => {
+          btn.addEventListener('click', () => openMobileEditMeal(meals[i]));
+        });
+        list.querySelectorAll('.del-meal').forEach((btn, i) => {
+          btn.addEventListener('click', async e => {
+            e.stopPropagation();
+            btn.textContent = '…'; btn.disabled = true;
+            try {
+              await api(`/api/meals/${meals[i].id}`, { method: 'DELETE' });
+              refreshMeals(); refreshRings();
+            } catch(e) { btn.textContent = '×'; btn.disabled = false; }
+          });
+        });
+      } catch(e) {}
+    }
+
+    function openMobileEditMeal(m) {
+      document.getElementById('mMealEditId').value   = m.id;
+      document.getElementById('mMealModalTitle').textContent = 'Edit Meal';
+      document.getElementById('mMealSubmit').textContent    = 'Save Changes';
+      document.getElementById('mMealName').value    = m.name || '';
+      document.getElementById('mMealCal').value     = m.calories || '';
+      document.getElementById('mMealPro').value     = m.protein || '';
+      document.getElementById('mMealCarbs').value   = m.carbs || '';
+      document.getElementById('mMealFat').value     = m.fat || '';
+      document.getElementById('mAddMealModal').classList.add('open');
+    }
+
+    function openMobileAddMeal() {
+      document.getElementById('mMealEditId').value   = '';
+      document.getElementById('mMealModalTitle').textContent = 'Log a Meal';
+      document.getElementById('mMealSubmit').textContent    = 'Log Meal';
+      ['mMealName','mMealCal','mMealPro','mMealCarbs','mMealFat'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('mAddMealModal').classList.add('open');
+    }
+
+    document.getElementById('mMealsAddBtn').addEventListener('click', openMobileAddMeal);
+    document.getElementById('mMealClose').addEventListener('click', () => document.getElementById('mAddMealModal').classList.remove('open'));
+    document.getElementById('mMealSubmit').addEventListener('click', async () => {
+      const name   = document.getElementById('mMealName').value.trim(); if (!name) return;
+      const editId = document.getElementById('mMealEditId').value;
+      const body = {
+        name, date: todayStr(),
+        calories: parseFloat(document.getElementById('mMealCal').value)||0,
+        protein:  parseFloat(document.getElementById('mMealPro').value)||0,
+        carbs:    parseFloat(document.getElementById('mMealCarbs').value)||0,
+        fat:      parseFloat(document.getElementById('mMealFat').value)||0,
+      };
+      try {
+        if (editId) {
+          await api(`/api/meals/${editId}`, { method: 'PUT', body: JSON.stringify(body) });
+        } else {
+          await api('/api/meals', { method: 'POST', body: JSON.stringify(body) });
+        }
+        document.getElementById('mAddMealModal').classList.remove('open');
+        refreshRings(); refreshMeals();
+      } catch(e){ alert('Failed to save meal'); }
+    });
+
+    // ── AI Meal Input (in rings header) ──
+    const mAiMealInput = document.getElementById('mAiMealInput');
+    const mAiMealBtn   = document.getElementById('mAiMealBtn');
+    async function submitMobileAIMeal() {
+      const text = mAiMealInput.value.trim(); if (!text) return;
+      mAiMealBtn.textContent = '⏳'; mAiMealBtn.disabled = true; mAiMealInput.disabled = true;
+      try {
+        await api('/api/meals/parse', { method: 'POST', body: JSON.stringify({ text }) });
+        mAiMealInput.value = '';
+        mAiMealBtn.textContent = '✅';
+        refreshRings(); refreshMeals();
+        setTimeout(() => { mAiMealBtn.textContent = '↑'; }, 1500);
+      } catch(e) {
+        mAiMealBtn.textContent = '❌';
+        setTimeout(() => { mAiMealBtn.textContent = '↑'; }, 1500);
+      }
+      mAiMealBtn.disabled = false; mAiMealInput.disabled = false;
+    }
+    mAiMealBtn.addEventListener('click', submitMobileAIMeal);
+    mAiMealInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitMobileAIMeal(); });
+
+    // ── Close modals on backdrop tap ──
+    ['mAddMealModal','mAddGoalModal'].forEach(id => {
+      document.getElementById(id).addEventListener('click', e => { if (e.target.id===id) document.getElementById(id).classList.remove('open'); });
     });
 
     // ── Tabs ──
-    document.querySelectorAll('.tab-btn').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const tab=btn.dataset.tab;
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('panel-'+tab).classList.add('active');
-        if (tab==='calendar') refreshCalendar();
+        if (tab === 'calendar') refreshCalendar();
+        if (tab === 'meals')    refreshMeals();
       });
     });
 
     // ── WebSocket ──
     function connectWS(){
       try {
-        const ws=new WebSocket((location.protocol==='https:'?'wss:':'ws:')+`//${location.host}`);
-        ws.onmessage=ev=>{
-          let msg; try{msg=JSON.parse(ev.data);}catch(e){return;}
-          if(['rings_updated','meals_updated','goals_updated','goal_tracker_updated'].includes(msg.type)) refreshRings();
-          if(msg.type==='workouts_updated') refreshMuscles();
-          if(['habits_updated','goal_tracker_updated'].includes(msg.type)){refreshHabits();refreshDailyGoals();}
-          if(msg.type==='runs_updated') refreshRun();
+        const ws = new WebSocket((location.protocol==='https:'?'wss:':'ws:')+`//${location.host}`);
+        ws.onmessage = ev => {
+          let msg; try { msg = JSON.parse(ev.data); } catch(e) { return; }
+          if (['rings_updated','meals_updated','goals_updated','goal_tracker_updated'].includes(msg.type)) refreshRings();
+          if (msg.type === 'meals_updated') refreshMeals();
+          if (msg.type === 'workouts_updated') refreshMuscles();
+          if (['habits_updated','goal_tracker_updated'].includes(msg.type)) { refreshHabits(); refreshDailyGoals(); }
+          if (msg.type === 'runs_updated') refreshRun();
         };
-        ws.onclose=()=>setTimeout(connectWS,3000); ws.onerror=()=>ws.close();
-      } catch(e){setTimeout(connectWS,3000);}
+        ws.onclose = () => setTimeout(connectWS, 3000); ws.onerror = () => ws.close();
+      } catch(e){ setTimeout(connectWS, 3000); }
     }
-
-    // ── AI Meal Input ──
-    const aiInput = document.getElementById('aiMealInput');
-    const aiBtn   = document.getElementById('aiMealBtn');
-    async function submitAIMeal() {
-      const text = aiInput.value.trim(); if (!text) return;
-      aiBtn.textContent = '⏳'; aiBtn.disabled = true; aiInput.disabled = true;
-      try {
-        const r = await api('/api/meals/parse', { method: 'POST', body: JSON.stringify({ text }) });
-        aiInput.value = '';
-        aiBtn.textContent = '✅';
-        refreshRings();
-        setTimeout(() => { aiBtn.textContent = '↑'; }, 1500);
-      } catch(e) {
-        aiBtn.textContent = '❌';
-        setTimeout(() => { aiBtn.textContent = '↑'; }, 1500);
-      }
-      aiBtn.disabled = false; aiInput.disabled = false;
-    }
-    aiBtn.addEventListener('click', submitAIMeal);
-    aiInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAIMeal(); });
 
     // ── Init ──
     refreshRings();

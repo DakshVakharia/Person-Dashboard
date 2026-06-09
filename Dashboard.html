@@ -1047,6 +1047,11 @@
             <button class="cal-nav-btn" id="calRefreshBtn" title="Refresh calendar">↻</button>
           </div>
         </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input id="aiCalInput" type="text" placeholder="dentist tomorrow at 3pm…" autocomplete="off"
+            style="flex:1;padding:7px 11px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'Space Grotesk',sans-serif;font-size:12.5px;outline:none;" />
+          <button id="aiCalBtn" style="padding:7px 13px;border-radius:9px;border:none;background:var(--green);color:#09090B;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">↑</button>
+        </div>
         <div class="agenda" id="agendaList">
           <div class="ag-item">
             <div class="ag-dot" style="background:var(--green)"></div>
@@ -1054,6 +1059,25 @@
             <div class="ag-time">07:00</div>
           </div>
         </div>
+      </div>
+
+      <!-- Study Log card -->
+      <div class="card">
+        <div class="lbl">Study Log</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">
+          <input id="studyTitle" type="text" placeholder="Subject / topic"
+            style="width:100%;padding:7px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'Space Grotesk',sans-serif;font-size:12.5px;outline:none;" />
+          <div style="display:flex;gap:7px;">
+            <input id="studyHours" type="number" placeholder="hrs" min="0" max="23"
+              style="flex:1;padding:7px 8px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:12.5px;outline:none;text-align:center;" />
+            <input id="studyMins" type="number" placeholder="min" min="0" max="59"
+              style="flex:1;padding:7px 8px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:12.5px;outline:none;text-align:center;" />
+            <button id="studyLogBtn"
+              style="flex:1;padding:7px 10px;border-radius:9px;border:none;background:var(--green);color:#09090B;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">↑</button>
+          </div>
+        </div>
+        <div id="studyList" style="display:flex;flex-direction:column;gap:5px;margin-top:10px;"></div>
+        <div id="studyTotal" style="font-size:11px;color:var(--t3);margin-top:6px;text-align:right;"></div>
       </div>
     </div>
 
@@ -1205,11 +1229,12 @@
         </div>
       </div>
 
-      <!-- Add Meal modal -->
+      <!-- Add / Edit Meal modal -->
       <div class="modal-backdrop" id="addMealModal">
         <div class="modal" style="width:340px;">
+          <input type="hidden" id="editMealId" />
           <div class="modal-header">
-            <span class="modal-title">Log a Meal</span>
+            <span class="modal-title" id="addMealModalTitle">Log a Meal</span>
             <button class="modal-close" id="addMealCloseBtn">&times;</button>
           </div>
           <div class="run-fields" style="grid-template-columns:1fr;">
@@ -1258,6 +1283,34 @@
             </div>
           </div>
           <button class="run-log-btn" id="addGoalSubmitBtn">Add Goal</button>
+        </div>
+      </div>
+
+      <!-- Calendar Event Edit modal -->
+      <div class="modal-backdrop" id="calEditModal">
+        <div class="modal" style="width:340px;">
+          <div class="modal-header">
+            <span class="modal-title">Edit Event</span>
+            <button class="modal-close" id="calEditCloseBtn">&times;</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding-top:4px;">
+            <input type="hidden" id="calEditId" />
+            <div>
+              <label style="font-size:10px;font-weight:600;letter-spacing:0.07em;color:var(--t2);text-transform:uppercase;">Title</label>
+              <input id="calEditTitle" type="text" style="width:100%;margin-top:5px;padding:8px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none;" />
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div>
+                <label style="font-size:10px;font-weight:600;letter-spacing:0.07em;color:var(--t2);text-transform:uppercase;">Start</label>
+                <input id="calEditStart" type="datetime-local" style="width:100%;margin-top:5px;padding:7px 8px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'Space Grotesk',sans-serif;font-size:12px;outline:none;" />
+              </div>
+              <div>
+                <label style="font-size:10px;font-weight:600;letter-spacing:0.07em;color:var(--t2);text-transform:uppercase;">End</label>
+                <input id="calEditEnd" type="datetime-local" style="width:100%;margin-top:5px;padding:7px 8px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'Space Grotesk',sans-serif;font-size:12px;outline:none;" />
+              </div>
+            </div>
+            <button class="run-log-btn" id="calEditSaveBtn">Save Changes</button>
+          </div>
         </div>
       </div>
 
@@ -1504,8 +1557,23 @@
 
   </div>
 
+  <!-- Report modal -->
+  <div class="modal-backdrop" id="reportModal">
+    <div class="modal" style="width:500px;max-height:82vh;overflow-y:auto;">
+      <div class="modal-header">
+        <span class="modal-title" id="reportTitle">Weekly Report</span>
+        <button class="modal-close" id="reportCloseBtn">&times;</button>
+      </div>
+      <div id="reportBody" style="display:flex;flex-direction:column;gap:14px;padding-top:4px;">
+        <div style="color:var(--t3);font-size:12px;">Loading…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ BOTTOM BAR ═══ -->
   <div style="position:fixed;bottom:16px;right:20px;display:flex;gap:8px;z-index:100;">
+    <button id="weekReportBtn" title="Weekly Report" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--t2);">7d</button>
+    <button id="monthReportBtn" title="Monthly Report" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t2);">30d</button>
     <button id="backupBtn" title="Backup to Google Drive" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);">💾</button>
     <button class="theme-btn" id="themeBtn" title="Toggle theme" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);">☀</button>
   </div>
@@ -1577,6 +1645,107 @@
       } catch(e) { b.textContent = '❌'; }
       setTimeout(() => { b.textContent = '💾'; b.style.opacity = ''; b.disabled = false; }, 2500);
     });
+
+    // ── Reports ──
+    const reportModal     = document.getElementById('reportModal');
+    const reportCloseBtn  = document.getElementById('reportCloseBtn');
+    const reportTitle     = document.getElementById('reportTitle');
+    const reportBody      = document.getElementById('reportBody');
+    reportCloseBtn.addEventListener('click', () => { reportModal.classList.remove('open'); document.body.style.overflow = ''; });
+    reportModal.addEventListener('click', e => { if (e.target === reportModal) { reportModal.classList.remove('open'); document.body.style.overflow = ''; } });
+
+    function statRow(label, value, sub) {
+      return `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--s3);">
+        <span style="font-size:12.5px;color:var(--t2);">${label}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:13px;font-weight:600;color:var(--t1);">${value}${sub ? `<span style="font-size:10px;color:var(--t3);margin-left:5px;">${sub}</span>` : ''}</span>
+      </div>`;
+    }
+    function sectionHeader(title) {
+      return `<div style="font-size:10px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--t3);margin-top:6px;">${title}</div>`;
+    }
+
+    async function openReport(days) {
+      reportTitle.textContent = days === 7 ? 'Weekly Report' : 'Monthly Report';
+      reportBody.innerHTML = `<div style="color:var(--t3);font-size:12px;text-align:center;padding:20px 0;">Loading…</div>`;
+      reportModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+
+      try {
+        const logs = await api(`/api/logs?days=${days}`);
+        const daysWithData = logs.filter(d => d.meals?.length || d.rings?.protein_intake);
+
+        // ── Nutrition ──
+        const totalCal = logs.reduce((s, d) => s + (d.meals || []).reduce((ms, m) => ms + (m.calories || 0), 0), 0);
+        const totalPro = logs.reduce((s, d) => s + (d.rings?.protein_intake || 0), 0);
+        const activeDays = daysWithData.length || 1;
+        const avgCal = Math.round(totalCal / activeDays);
+        const avgPro = Math.round(totalPro / activeDays);
+        const totalMeals = logs.reduce((s, d) => s + (d.meals?.length || 0), 0);
+
+        // Best calorie day
+        let bestDay = null, bestCal = 0;
+        logs.forEach(d => {
+          const c = (d.meals || []).reduce((s, m) => s + (m.calories || 0), 0);
+          if (c > bestCal) { bestCal = c; bestDay = d.date; }
+        });
+
+        // ── Habits ──
+        let habitDone = 0, habitTotal = 0;
+        logs.forEach(d => {
+          (d.habits || []).forEach(h => { habitTotal++; if (h.completed) habitDone++; });
+        });
+        const habitPct = habitTotal ? Math.round((habitDone / habitTotal) * 100) : 0;
+
+        // ── Weight ──
+        const weights = logs.filter(d => d.weight?.weight).map(d => ({ date: d.date, w: d.weight.weight }));
+        const firstW = weights[weights.length - 1];
+        const lastW  = weights[0];
+        const weightStr = lastW ? lastW.w + ' kg' : '—';
+        const weightDelta = (lastW && firstW && lastW !== firstW)
+          ? ((lastW.w - firstW.w) >= 0 ? '+' : '') + (lastW.w - firstW.w).toFixed(1) + ' kg'
+          : null;
+
+        // ── Goals ──
+        let goalsDone = 0, goalsTotal = 0;
+        logs.forEach(d => {
+          (d.goals || []).filter(g => g.period === 'daily').forEach(g => { goalsTotal++; if (g.completed) goalsDone++; });
+        });
+
+        // ── Date range ──
+        const oldest = logs[logs.length - 1]?.date;
+        const newest = logs[0]?.date;
+        const rangeStr = oldest && newest ? `${oldest} → ${newest}` : '';
+
+        // ── Render ──
+        let html = `<div style="font-size:11px;color:var(--t3);margin-bottom:2px;">${rangeStr}</div>`;
+
+        html += sectionHeader('Nutrition');
+        html += statRow('Avg calories / day', avgCal + ' kcal');
+        html += statRow('Avg protein / day', avgPro + 'g');
+        html += statRow('Total meals logged', totalMeals);
+        if (bestDay) html += statRow('Best day', bestCal + ' kcal', bestDay);
+
+        html += sectionHeader('Habits');
+        html += statRow('Completion rate', habitPct + '%', `${habitDone} / ${habitTotal}`);
+
+        if (lastW) {
+          html += sectionHeader('Weight');
+          html += statRow('Latest', weightStr, weightDelta || undefined);
+        }
+
+        if (goalsTotal) {
+          html += sectionHeader('Daily Goals');
+          html += statRow('Completed', `${goalsDone} / ${goalsTotal}`, Math.round(goalsDone / goalsTotal * 100) + '%');
+        }
+
+        reportBody.innerHTML = html;
+      } catch(e) {
+        reportBody.innerHTML = `<div style="color:var(--t3);font-size:12px;">Failed to load report: ${e.message}</div>`;
+      }
+    }
+
+    document.getElementById('weekReportBtn').addEventListener('click',  () => openReport(7));
+    document.getElementById('monthReportBtn').addEventListener('click', () => openReport(30));
 
     // ── Theme toggle ──
     const html = document.documentElement;
@@ -1803,10 +1972,11 @@
         const el = document.getElementById('mealLogList');
         if (!meals.length) { el.innerHTML = ''; return; }
         el.innerHTML = meals.map(m => `
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--s2);border-radius:8px;font-size:12px;">
+          <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--s2);border-radius:8px;font-size:12px;">
             <span style="color:var(--t1);font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</span>
-            <span style="color:var(--t2);margin-left:10px;white-space:nowrap;">${m.calories||0} kcal · ${m.protein||0}g pro</span>
-            <button onclick="deleteMeal(${m.id})" style="margin-left:8px;background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0;line-height:1;">×</button>
+            <span style="color:var(--t2);white-space:nowrap;">${m.calories||0} kcal · ${m.protein||0}g pro</span>
+            <button onclick='openEditMeal(${JSON.stringify(m)})' style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:12px;padding:0;line-height:1;">✏</button>
+            <button onclick="deleteMeal(${m.id})" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0;line-height:1;">×</button>
           </div>`).join('');
       } catch(e) {}
     }
@@ -1836,6 +2006,139 @@
     aiBtn.addEventListener('click', submitAIMeal);
     aiInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAIMeal(); });
 
+    // ── AI Calendar Input ──
+    const aiCalInput = document.getElementById('aiCalInput');
+    const aiCalBtn   = document.getElementById('aiCalBtn');
+    async function submitAICalEvent() {
+      const text = aiCalInput.value.trim(); if (!text) return;
+      const orig = aiCalBtn.textContent;
+      aiCalBtn.textContent = '…'; aiCalBtn.disabled = true; aiCalInput.disabled = true;
+      try {
+        const r = await fetch('/api/calendar/parse', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, events: currentAgendaEvents })
+        });
+        if (!r.ok) throw new Error();
+        aiCalInput.value = '';
+        aiCalBtn.textContent = '✅';
+        refreshAgenda();
+        setTimeout(() => { aiCalBtn.textContent = orig; }, 1500);
+      } catch(e) {
+        aiCalBtn.textContent = '❌';
+        setTimeout(() => { aiCalBtn.textContent = orig; }, 1500);
+      }
+      aiCalBtn.disabled = false; aiCalInput.disabled = false;
+    }
+    aiCalBtn.addEventListener('click', submitAICalEvent);
+    aiCalInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitAICalEvent(); });
+
+    // ── Study Log ──
+    async function refreshStudyList() {
+      try {
+        const { sessions, total_minutes } = await api('/api/study');
+        const list = document.getElementById('studyList');
+        const totalEl = document.getElementById('studyTotal');
+        if (!sessions.length) { list.innerHTML = ''; totalEl.textContent = ''; return; }
+        list.innerHTML = sessions.map(s => {
+          const h = Math.floor(s.duration_minutes / 60);
+          const m = s.duration_minutes % 60;
+          const dur = h ? `${h}h ${m}m` : `${m}m`;
+          return `<div style="display:flex;align-items:center;gap:6px;padding:5px 9px;background:var(--s2);border-radius:8px;font-size:12px;">
+            <span style="flex:1;color:var(--t1);font-weight:500;">${s.title}</span>
+            <span style="font-family:'DM Mono',monospace;color:var(--t2);font-size:11px;">${dur}</span>
+            <button onclick="deleteStudy(${s.id})" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0;line-height:1;">×</button>
+          </div>`;
+        }).join('');
+        const th = Math.floor(total_minutes / 60), tm = total_minutes % 60;
+        totalEl.textContent = `Total: ${th ? th + 'h ' : ''}${tm}m`;
+      } catch(e) {}
+    }
+    window.deleteStudy = async (id) => {
+      try { await api('/api/study/' + id, { method: 'DELETE' }); refreshStudyList(); } catch(e) {}
+    };
+    async function submitStudy() {
+      const title = document.getElementById('studyTitle').value.trim();
+      const hours = document.getElementById('studyHours').value;
+      const mins  = document.getElementById('studyMins').value;
+      if (!title) { document.getElementById('studyTitle').focus(); return; }
+      if (!hours && !mins) { document.getElementById('studyHours').focus(); return; }
+      const btn = document.getElementById('studyLogBtn');
+      btn.textContent = '…'; btn.disabled = true;
+      try {
+        await api('/api/study', { method: 'POST', body: JSON.stringify({ title, hours, minutes: mins }) });
+        document.getElementById('studyTitle').value = '';
+        document.getElementById('studyHours').value = '';
+        document.getElementById('studyMins').value = '';
+        btn.textContent = '✅';
+        refreshStudyList();
+        setTimeout(() => { btn.textContent = '↑'; }, 1500);
+      } catch(e) {
+        btn.textContent = '❌';
+        setTimeout(() => { btn.textContent = '↑'; }, 1500);
+      }
+      btn.disabled = false;
+    }
+    document.getElementById('studyLogBtn').addEventListener('click', submitStudy);
+    document.getElementById('studyTitle').addEventListener('keydown', e => { if (e.key === 'Enter') submitStudy(); });
+    document.getElementById('studyMins').addEventListener('keydown',  e => { if (e.key === 'Enter') submitStudy(); });
+
+    // ── Calendar: delete + edit via agenda list buttons ──
+    document.getElementById('agendaList').addEventListener('click', async e => {
+      const delBtn  = e.target.closest('.ag-del-btn');
+      const editBtn = e.target.closest('.ag-edit-btn');
+      if (delBtn) {
+        const id = delBtn.dataset.id;
+        delBtn.textContent = '⏳';
+        try {
+          await api(`/api/calendar/events/${id}`, { method: 'DELETE' });
+          refreshAgenda();
+        } catch(err) { delBtn.textContent = '×'; }
+      }
+      if (editBtn) {
+        const id = editBtn.dataset.id;
+        const ev = currentAgendaEvents.find(e => e.id === id);
+        if (!ev) return;
+        document.getElementById('calEditId').value = id;
+        document.getElementById('calEditTitle').value = ev.summary || '';
+        // Convert ISO to datetime-local value (YYYY-MM-DDTHH:MM)
+        const toLocal = iso => {
+          if (!iso) return '';
+          const d = new Date(iso);
+          const pad = n => String(n).padStart(2,'0');
+          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        };
+        document.getElementById('calEditStart').value = toLocal(ev.start?.dateTime || ev.start?.date);
+        document.getElementById('calEditEnd').value   = toLocal(ev.end?.dateTime   || ev.end?.date);
+        document.getElementById('calEditModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+
+    // ── Calendar Edit modal ──
+    const calEditModal    = document.getElementById('calEditModal');
+    const calEditCloseBtn = document.getElementById('calEditCloseBtn');
+    const calEditSaveBtn  = document.getElementById('calEditSaveBtn');
+    calEditCloseBtn.addEventListener('click', () => { calEditModal.classList.remove('open'); document.body.style.overflow = ''; });
+    calEditModal.addEventListener('click', e => { if (e.target === calEditModal) { calEditModal.classList.remove('open'); document.body.style.overflow = ''; } });
+    calEditSaveBtn.addEventListener('click', async () => {
+      const id    = document.getElementById('calEditId').value;
+      const title = document.getElementById('calEditTitle').value.trim();
+      const start = document.getElementById('calEditStart').value;
+      const end   = document.getElementById('calEditEnd').value;
+      if (!title || !id) return;
+      calEditSaveBtn.disabled = true; calEditSaveBtn.textContent = '…';
+      try {
+        await api(`/api/calendar/events/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ title, start_time: start ? start + ':00' : undefined, end_time: end ? end + ':00' : undefined }),
+        });
+        calEditModal.classList.remove('open'); document.body.style.overflow = '';
+        refreshAgenda();
+      } catch(err) {}
+      calEditSaveBtn.disabled = false; calEditSaveBtn.textContent = 'Save Changes';
+    });
+
     // ── Add Meal modal ──
     const addMealModal      = document.getElementById('addMealModal');
     const addMealCloseBtn   = document.getElementById('addMealCloseBtn');
@@ -1845,11 +2148,28 @@
     const addMealCarbs      = document.getElementById('addMealCarbs');
     const addMealFat        = document.getElementById('addMealFat');
     const addMealSubmitBtn  = document.getElementById('addMealSubmitBtn');
+    const editMealId = document.getElementById('editMealId');
     function closeAddMealModal() {
       addMealModal.classList.remove('open');
       document.body.style.overflow = '';
+      editMealId.value = '';
+      document.getElementById('addMealModalTitle').textContent = 'Log a Meal';
+      addMealSubmitBtn.textContent = 'Log Meal';
       [addMealName, addMealCalories, addMealProtein, addMealCarbs, addMealFat].forEach(el => el.value = '');
     }
+    window.openEditMeal = function(m) {
+      editMealId.value = m.id;
+      addMealName.value     = m.name || '';
+      addMealCalories.value = m.calories || '';
+      addMealProtein.value  = m.protein  || '';
+      addMealCarbs.value    = m.carbs    || '';
+      addMealFat.value      = m.fat      || '';
+      document.getElementById('addMealModalTitle').textContent = 'Edit Meal';
+      addMealSubmitBtn.textContent = 'Save Changes';
+      addMealModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      addMealName.focus();
+    };
     // addMealBtn removed — meals logged via AI input only
     addMealCloseBtn.addEventListener('click', closeAddMealModal);
     addMealModal.addEventListener('click', e => { if (e.target === addMealModal) closeAddMealModal(); });
@@ -1857,9 +2177,10 @@
       const name = addMealName.value.trim();
       if (!name) { addMealName.focus(); return; }
       addMealSubmitBtn.disabled = true;
+      const id = editMealId.value;
       try {
-        await api('/api/meals', {
-          method: 'POST',
+        await api(id ? `/api/meals/${id}` : '/api/meals', {
+          method: id ? 'PUT' : 'POST',
           body: JSON.stringify({
             name,
             calories: Number(addMealCalories.value) || 0,
@@ -1870,6 +2191,7 @@
         });
         closeAddMealModal();
         await refreshRings();
+        refreshMealList();
       } catch (e) {}
       addMealSubmitBtn.disabled = false;
     }
@@ -1915,7 +2237,7 @@
     addGoalTitle.addEventListener('keydown', e => { if (e.key === 'Enter') submitAddGoal(); });
     addGoalIcon.addEventListener('keydown', e => { if (e.key === 'Enter') submitAddGoal(); });
 
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { habModal.classList.remove('open'); document.getElementById('runModal').classList.remove('open'); goalsModal.classList.remove('open'); logsModal.classList.remove('open'); closeAddGoalModal(); closeAddMealModal(); document.body.style.overflow = ''; } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { habModal.classList.remove('open'); document.getElementById('runModal').classList.remove('open'); goalsModal.classList.remove('open'); logsModal.classList.remove('open'); document.getElementById('calEditModal')?.classList.remove('open'); document.getElementById('reportModal')?.classList.remove('open'); closeAddGoalModal(); closeAddMealModal(); document.body.style.overflow = ''; } });
 
     // ── Habits modal: render grid + wire checkbox toggles ──
     function renderHabitsModal(week) {
@@ -2176,21 +2498,28 @@
       return `${y}-${m}-${day}`;
     }
 
+    let currentAgendaEvents = [];
     function renderAgenda(events) {
+      currentAgendaEvents = events || [];
       const list = document.getElementById('agendaList');
-      if (!events || !events.length) {
+      if (!currentAgendaEvents.length) {
         list.innerHTML = `<div class="ag-item"><div class="ag-body"><div class="ag-title">No events</div><div class="ag-sub">Schedule is clear</div></div></div>`;
         return;
       }
       const colors = ['var(--green)','var(--blue)','var(--orange)','var(--purple)'];
-      list.innerHTML = events.slice(0, 6).map((ev, i) => {
+      list.innerHTML = currentAgendaEvents.slice(0, 6).map((ev, i) => {
         const time = ev.start?.dateTime
           ? new Date(ev.start.dateTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
           : 'All day';
-        return `<div class="ag-item">
+        const btnStyle = 'background:none;border:none;cursor:pointer;padding:2px 5px;border-radius:5px;font-size:13px;line-height:1;color:var(--t3);transition:color 0.15s;';
+        return `<div class="ag-item" style="position:relative;" data-ev-id="${ev.id}">
           <div class="ag-dot" style="background:${colors[i % colors.length]}"></div>
           <div class="ag-body"><div class="ag-title">${ev.summary || 'Untitled event'}</div><div class="ag-sub">${ev.location || (ev.description || '').slice(0, 40) || ''}</div></div>
           <div class="ag-time">${time}</div>
+          <div style="display:flex;gap:2px;margin-left:6px;">
+            <button class="ag-edit-btn" data-id="${ev.id}" title="Edit" style="${btnStyle}">✏</button>
+            <button class="ag-del-btn" data-id="${ev.id}" title="Delete" style="${btnStyle}">×</button>
+          </div>
         </div>`;
       }).join('');
     }
@@ -2358,6 +2687,7 @@
     refreshMuscles();
     refreshRunWeek();
     refreshAgenda();
+    refreshStudyList();
 
     // ── Portrait tab switching ──
     (function () {
