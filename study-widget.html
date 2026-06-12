@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study · This Week</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-family: 'Space Grotesk', system-ui, sans-serif; background: transparent; }
+    body { padding: 16px; }
+    .card {
+      background: rgba(30, 30, 42, 0.9);
+      border: 1px solid rgba(62, 62, 84, 0.5);
+      border-radius: 14px;
+      padding: 16px;
+      color: #e0e0e8;
+      backdrop-filter: blur(8px);
+    }
+    .lbl { font-size: 14px; font-weight: 600; color: #e0e0e8; margin-bottom: 12px; }
+    #studyBars { display: flex; align-items: flex-end; gap: 4px; height: 80px; margin-bottom: 8px; }
+    .bar { flex: 1; background: #4a9eff; border-radius: 2px; }
+    .day-labels { display: flex; gap: 4px; font-size: 10px; color: #a0a0b0; justify-content: space-around; margin-bottom: 12px; }
+    #studySummary { font-size: 12px; color: #a0a0b0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="lbl">Study · This Week</div>
+    <div id="studyBars"></div>
+    <div class="day-labels">
+      <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+    </div>
+    <div id="studySummary">Loading...</div>
+  </div>
+
+  <script>
+    async function api(path, opts = {}) {
+      const res = await fetch(path, { ...opts, credentials: 'include' });
+      if (!res.ok) throw new Error(res.statusText);
+      return res.json();
+    }
+
+    async function loadStudyData() {
+      try {
+        const studyWeek = await api('/api/study/week');
+        const goals = await api('/api/goals');
+        const studyGoal = parseInt(goals.study_goal || '240');
+        const max = Math.max(studyGoal, ...Object.values(studyWeek.dailyTotals), 1);
+
+        document.getElementById('studyBars').innerHTML = studyWeek.dates.map(d => {
+          const val = studyWeek.dailyTotals[d] || 0;
+          return `<div class="bar" style="height:${Math.round(val/max*100)}%;"></div>`;
+        }).join('');
+
+        const weekTotal = Object.values(studyWeek.dailyTotals).reduce((a,b)=>a+b,0);
+        document.getElementById('studySummary').textContent = `Week total: ${weekTotal} min / ${studyGoal * 7} min`;
+      } catch (e) {
+        document.getElementById('studySummary').textContent = 'Error loading data';
+      }
+    }
+
+    loadStudyData();
+    setInterval(loadStudyData, 30000); // Refresh every 30s
+  </script>
+</body>
+</html>

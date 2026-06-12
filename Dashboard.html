@@ -1205,6 +1205,18 @@
               </div>
               <div class="cl-track"><div class="cl-fill" id="taskFill" style="width:70%;background:var(--green)"></div></div>
             </div>
+            <div>
+              <div class="cl-meta">
+                <div class="cl-dot" style="background:var(--blue)"></div>
+                <span class="cl-name">Study</span>
+                <span class="cl-pct" id="studyPct">0%</span>
+              </div>
+              <div class="cl-vals">
+                <span class="cl-main" id="studyMain">0 min</span>
+                <span class="cl-goal" id="studyGoal">/ 240 min goal</span>
+              </div>
+              <div class="cl-track"><div class="cl-fill" id="studyFill" style="width:0%;background:var(--blue)"></div></div>
+            </div>
           </div>
 
         </div>
@@ -1340,12 +1352,24 @@
             <button class="modal-close" id="addCardCloseBtn">&times;</button>
           </div>
           <div class="run-fields" style="grid-template-columns:1fr 1fr;">
-            <div class="run-field" style="grid-column:1 / -1;"><label>Title</label><input type="text" id="ccTitle" placeholder="e.g. Water" maxlength="40"></div>
-            <div class="run-field"><label>Icon</label><input type="text" id="ccIcon" placeholder="💧" maxlength="4"></div>
-            <div class="run-field"><label>Unit</label><input type="text" id="ccUnit" placeholder="L" maxlength="10"></div>
-            <div class="run-field"><label>Target</label><input type="number" id="ccTarget" placeholder="2" step="any"></div>
-            <div class="run-field"><label>Visualization</label><select id="ccViz" style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:13px;outline:none;"><option value="ring">Ring</option><option value="bar">Bar graph</option><option value="line">Line graph</option></select></div>
-            <div class="run-field" style="grid-column:1 / -1;"><label>Frequency</label><select id="ccFreq" style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:13px;outline:none;"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
+            <div class="run-field" style="grid-column:1 / -1;"><label>Title</label><input type="text" id="ccTitle" placeholder="e.g. Reading" maxlength="40"></div>
+            <div class="run-field"><label>Icon</label><input type="text" id="ccIcon" placeholder="📖" maxlength="4"></div>
+            <div class="run-field"><label>Frequency</label><select id="ccFreq"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
+            <div class="run-field"><label>Visualization</label><select id="ccViz"><option value="ring">Ring</option><option value="bar">Bar graph</option><option value="line">Line graph</option></select></div>
+            <div class="run-field"><label>Target</label><input type="number" id="ccTarget" placeholder="100" step="any"></div>
+
+            <!-- Quantities Section -->
+            <div class="run-field" style="grid-column:1 / -1;">
+              <label>Quantities</label>
+              <div id="ccQuantities" style="display:flex;flex-direction:column;gap:8px;">
+                <div class="cc-qty-row" style="display:flex;gap:6px;">
+                  <input type="text" class="cc-qty-name" placeholder="Name (e.g. pages)" maxlength="30" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:12px;">
+                  <input type="text" class="cc-qty-unit" placeholder="Unit (e.g. pages)" maxlength="20" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:12px;">
+                  <button class="cc-qty-del" style="padding:7px 10px;border-radius:8px;border:none;background:var(--s3);color:var(--t2);cursor:pointer;font-size:12px;">−</button>
+                </div>
+              </div>
+              <button id="ccAddQty" style="margin-top:8px;padding:6px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);cursor:pointer;font-size:12px;">+ Add quantity</button>
+            </div>
           </div>
           <button class="run-log-btn" id="ccSubmitBtn">Add Card</button>
         </div>
@@ -1512,6 +1536,21 @@
           </div>
 
         </div>
+      </div>
+
+      <!-- Study statistics card -->
+      <div class="card" data-card-key="study-chart" style="--d:0.12s">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div class="lbl">Study · This Week</div>
+          <button id="studyGraphBtn" style="padding:4px 10px;border-radius:8px;border:none;background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📊 Graph</button>
+        </div>
+        <div id="studyGraphContainer" style="display:none;margin-bottom:12px;">
+          <div id="studyBars" style="display:flex;align-items:flex-end;gap:4px;height:80px;margin-bottom:8px;"></div>
+          <div style="display:flex;gap:8px;font-size:10px;color:var(--t3);justify-content:space-around;">
+            <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+          </div>
+        </div>
+        <div id="studySummary" style="font-size:12px;color:var(--t2);"></div>
       </div>
 
       <!-- Muscle groups -->
@@ -1940,11 +1979,12 @@
     // ── Today's Progress rings (Calories / Protein / Tasks) ──
     async function refreshRings() {
       try {
-        const [rings, meals, settings, taskStats] = await Promise.all([
+        const [rings, meals, settings, taskStats, studyWeek] = await Promise.all([
           api('/api/rings/today?date=' + activeDateStr()),
           api('/api/meals?date=' + activeDateStr()),
           api('/api/goals'),
           refreshGoalTracker(),
+          api('/api/study/week'),
         ]);
         const calorieGoal = parseInt(settings.calorie_goal || '1900');
         const proteinGoal = rings.protein_goal || parseInt(settings.protein_goal || '130');
@@ -1980,6 +2020,25 @@
 
         const score = Math.round(((calPct + proPct + taskPct) / 3) / 10 * 10) / 10;
         document.getElementById('dailyScore').textContent = score.toFixed(1);
+
+        const studyGoal = parseInt(settings.study_goal || '240');
+        const studyToday = studyWeek.dailyTotals[todayStr()] || 0;
+        const studyPct = studyGoal ? Math.min(100, Math.round(studyToday / studyGoal * 100)) : 0;
+
+        document.getElementById('studyPct').textContent = studyPct + '%';
+        document.getElementById('studyMain').textContent = studyToday + ' min';
+        document.getElementById('studyFill').style.width = studyPct + '%';
+
+        const studyBars = document.getElementById('studyBars');
+        if (studyBars) {
+          const max = Math.max(studyGoal, ...Object.values(studyWeek.dailyTotals), 1);
+          studyBars.innerHTML = studyWeek.dates.map(d => {
+            const val = studyWeek.dailyTotals[d] || 0;
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;"><div style="width:100%;height:${Math.round(val/max*100)}%;background:var(--blue);border-radius:2px;"></div></div>`;
+          }).join('');
+        }
+
+        document.getElementById('studySummary').textContent = `Week total: ${Object.values(studyWeek.dailyTotals).reduce((a,b)=>a+b,0)} min`;
       } catch (e) {}
     }
 
@@ -2014,6 +2073,12 @@
       if (runLast) runLast.style.display = 'flex';
       ['runDist','runPace','runCadence','runBPM'].forEach(id => document.getElementById(id).value = '');
       refreshRunWeek();
+    });
+
+    // ── Study graph button toggle ──
+    document.getElementById('studyGraphBtn')?.addEventListener('click', () => {
+      const container = document.getElementById('studyGraphContainer');
+      container.style.display = container.style.display === 'none' ? 'flex' : 'none';
     });
 
     // ── Habits modal ──
@@ -2927,16 +2992,42 @@
     function openAddCardModal(){ document.getElementById('addCardModal').classList.add('open'); }
     function closeAddCardModal(){ document.getElementById('addCardModal').classList.remove('open'); }
     document.getElementById('addCardCloseBtn')?.addEventListener('click', closeAddCardModal);
+
+    function wireQuantityButtons() {
+      document.getElementById('ccAddQty')?.addEventListener('click', () => {
+        const row = document.createElement('div');
+        row.className = 'cc-qty-row'; row.style.cssText = 'display:flex;gap:6px;';
+        row.innerHTML = '<input type="text" class="cc-qty-name" placeholder="Name" maxlength="30" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:12px;"><input type="text" class="cc-qty-unit" placeholder="Unit" maxlength="20" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:12px;"><button class="cc-qty-del" style="padding:7px 10px;border-radius:8px;border:none;background:var(--s3);color:var(--t2);cursor:pointer;font-size:12px;">−</button>';
+        document.getElementById('ccQuantities').appendChild(row);
+        wireQuantityButtons();
+      });
+      document.querySelectorAll('.cc-qty-del').forEach(btn => {
+        btn.onclick = () => {
+          const rows = document.querySelectorAll('#ccQuantities .cc-qty-row');
+          if (rows.length > 1) btn.closest('.cc-qty-row').remove();
+        };
+      });
+    }
+
     document.getElementById('ccSubmitBtn')?.addEventListener('click', async () => {
       const title = document.getElementById('ccTitle').value.trim(); if (!title) return;
+      const quantities = [];
+      document.querySelectorAll('#ccQuantities .cc-qty-row').forEach(row => {
+        const name = row.querySelector('.cc-qty-name').value.trim();
+        const unit = row.querySelector('.cc-qty-unit').value.trim();
+        if (name && unit) quantities.push({name, unit});
+      });
+      if (quantities.length === 0) return;
       await api('/api/cards', { method:'POST', body: JSON.stringify({
         title, icon: document.getElementById('ccIcon').value.trim() || '📊',
-        unit: document.getElementById('ccUnit').value.trim(),
         target_value: Number(document.getElementById('ccTarget').value) || 1,
         viz_mode: document.getElementById('ccViz').value,
         frequency: document.getElementById('ccFreq').value,
+        quantities: quantities
       })});
-      ['ccTitle','ccIcon','ccUnit','ccTarget'].forEach(id=>document.getElementById(id).value='');
+      ['ccTitle','ccIcon','ccTarget'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('ccQuantities').innerHTML = '<div class="cc-qty-row" style="display:flex;gap:6px;"><input type="text" class="cc-qty-name" placeholder="Name (e.g. pages)" maxlength="30" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:12px;"><input type="text" class="cc-qty-unit" placeholder="Unit (e.g. pages)" maxlength="20" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:12px;"><button class="cc-qty-del" style="padding:7px 10px;border-radius:8px;border:none;background:var(--s3);color:var(--t2);cursor:pointer;font-size:12px;">−</button></div>';
+      wireQuantityButtons();
       closeAddCardModal(); await renderCustomCards();
     });
 
@@ -2947,40 +3038,54 @@
       try { cards = await api('/api/cards'); } catch { return; }
       container.innerHTML = '';
       for (const c of cards) {
-        const pct = c.target_value ? Math.min(100, Math.round((c.current_value / c.target_value) * 100)) : 0;
+        const quantities = c.quantities ? JSON.parse(c.quantities) : [];
+        if (quantities.length === 0) continue;
+
         const el = document.createElement('div');
         el.className = 'card'; el.setAttribute('data-card-key', 'custom-' + c.id);
         el.style.position = 'relative';
-        let vizHtml = '';
-        if (c.viz_mode === 'ring') {
-          const uid = 'ccRing' + c.id; const C = 327;
-          vizHtml = `<div style="display:flex;justify-content:center;margin:8px 0;"><svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--s3)" stroke-width="11"/><circle id="${uid}" cx="60" cy="60" r="52" fill="none" stroke="var(--green)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 60 60)"/><text x="60" y="65" text-anchor="middle" fill="var(--t1)" font-size="18" font-weight="700">${c.current_value}</text></svg></div>`;
-        } else {
-          vizHtml = `<div class="cbar-row" id="ccBars${c.id}"></div>`;
-        }
+
+        // Display all quantities with current values
+        const qtyDisplay = quantities.map(q => {
+          const val = c.current_values?.[q.name] || 0;
+          return `<div style="font-size:12px;color:var(--t2);">${val} ${q.unit}</div>`;
+        }).join('');
+
+        // Logging inputs for each quantity
+        const logInputs = quantities.map(q =>
+          `<input type="number" placeholder="log ${q.name}" step="any" id="ccInput${c.id}_${q.name}" style="flex:1;padding:6px 9px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:12px;outline:none;">`
+        ).join('');
+
         el.innerHTML = `<button class="card-hide-btn" data-hide="custom-${c.id}">✕</button>
           <div class="lbl">${c.icon || ''} ${c.title}</div>
-          ${vizHtml}
-          <div style="font-size:11px;color:var(--t3);text-align:right;">${c.current_value} / ${c.target_value} ${c.unit || ''}</div>
-          <div class="custom-log-row"><input type="number" placeholder="log ${c.unit||'value'}" step="any" id="ccInput${c.id}"><button data-log="${c.id}">↑</button></div>`;
+          <div style="font-size:11px;color:var(--t3);margin-top:8px;">${qtyDisplay}</div>
+          <div class="custom-log-row" style="display:flex;gap:6px;margin-top:8px;">${logInputs}<button data-log="${c.id}">↑</button></div>`;
+
         container.appendChild(el);
-        if (c.viz_mode === 'ring') setTimeout(()=>{ const r=document.getElementById('ccRing'+c.id); if(r){ const C=327; r.style.transition='stroke-dashoffset 1s'; r.setAttribute('stroke-dashoffset', Math.round(C*(1-pct/100))); } }, 50);
-        if (c.viz_mode === 'bar' || c.viz_mode === 'line') {
-          try {
-            const { series } = await api('/api/cards/'+c.id+'/series?n=7');
-            const max = Math.max(c.target_value, ...series.map(s=>s.value), 1);
-            document.getElementById('ccBars'+c.id).innerHTML = series.map(s=>`<div class="cbar-col"><div class="cbar-track"><div class="cbar-fill" style="height:${Math.round((s.value/max)*100)}%"></div></div><div class="cbar-lbl">${s.period_key.slice(5)}</div></div>`).join('');
-          } catch {}
-        }
       }
-      // wire hide + log buttons
-      container.querySelectorAll('[data-hide]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); hideCard(b.getAttribute('data-hide')); }));
+
+      // Wire log buttons
       container.querySelectorAll('[data-log]').forEach(b => b.addEventListener('click', async () => {
-        const id = b.getAttribute('data-log'); const inp = document.getElementById('ccInput'+id);
-        const v = Number(inp.value); if (isNaN(v)) return;
-        await api('/api/cards/'+id+'/log', { method:'POST', body: JSON.stringify({ value: v }) });
-        inp.value=''; await renderCustomCards();
+        const id = b.getAttribute('data-log');
+        const card = cards.find(c => c.id === parseInt(id));
+        if (!card) return;
+        const quantities = card.quantities ? JSON.parse(card.quantities) : [];
+        const values = {};
+        for (const qty of quantities) {
+          const inp = document.getElementById('ccInput' + id + '_' + qty.name);
+          if (inp) {
+            const v = Number(inp.value);
+            if (!isNaN(v)) values[qty.name] = v;
+          }
+        }
+        if (Object.keys(values).length === 0) return;
+        await api('/api/cards/' + id + '/log', { method:'POST', body: JSON.stringify({ values }) });
+        for (const qty of quantities) document.getElementById('ccInput' + id + '_' + qty.name).value = '';
+        await renderCustomCards();
       }));
+
+      // Wire hide buttons
+      container.querySelectorAll('[data-hide]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); hideCard(b.getAttribute('data-hide')); }));
       applyCardLayout();
     }
 
@@ -3008,7 +3113,7 @@
     }
 
     // init
-    setTimeout(() => { applyCardLayout(); wireCardDrag(); renderCustomCards(); wireGoalEditing(); }, 300);
+    setTimeout(() => { applyCardLayout(); wireCardDrag(); wireQuantityButtons(); renderCustomCards(); wireGoalEditing(); }, 300);
   </script>
 
   <!-- Portrait bottom tab bar -->

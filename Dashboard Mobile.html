@@ -539,6 +539,13 @@
         </div>
         <div class="rl-track"><div class="rl-fill" id="mTaskFill" style="width:0%;background:var(--green)"></div></div>
       </div>
+      <div class="rl-item">
+        <div class="rl-top">
+          <div class="rl-label"><div class="rl-dot" style="background:var(--blue)"></div>Study</div>
+          <div class="rl-val" id="mStudyVal">-- / --</div>
+        </div>
+        <div class="rl-track"><div class="rl-fill" id="mStudyFill" style="width:0%;background:var(--blue)"></div></div>
+      </div>
       <!-- AI Meal input bar -->
       <div class="ai-meal-bar">
         <input id="mAiMealInput" type="text" placeholder="I had 2 eggs and toast…" autocomplete="off" />
@@ -625,6 +632,19 @@
           <div class="hab-streak-h">streak</div>
         </div>
         <div id="mHabRows"></div>
+      </div>
+      <div class="card" data-card-key="study-chart">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="lbl" style="margin-bottom:0;">Study · Week</div>
+          <button id="mStudyGraphBtn" style="padding:4px 8px;border-radius:6px;border:none;background:var(--blue);color:#fff;font-size:10px;font-weight:700;cursor:pointer;">📊</button>
+        </div>
+        <div id="mStudyGraphContainer" style="display:none;flex-direction:column;">
+          <div id="mStudyBars" style="display:flex;align-items:flex-end;gap:3px;height:60px;margin-bottom:6px;"></div>
+          <div style="display:flex;gap:4px;font-size:9px;color:var(--t3);justify-content:space-around;">
+            <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+          </div>
+        </div>
+        <div id="mStudySummary" style="font-size:11px;color:var(--t3);margin-top:6px;"></div>
       </div>
     </div>
 
@@ -814,6 +834,7 @@
       <div class="mf"><label>Target Value</label><input type="number" id="ccTarget" placeholder="Target" step="any"></div>
       <div class="mf"><label>Visualization</label><select id="ccViz" style="background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; padding: 11px 12px; color: var(--t1); width: 100%; outline: none; font-family: 'Space Grotesk', sans-serif; font-size: 14px;"><option value="ring">Ring</option><option value="bar">Bar graph</option><option value="line">Line graph</option></select></div>
       <div class="mf"><label>Frequency</label><select id="ccFreq" style="background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; padding: 11px 12px; color: var(--t1); width: 100%; outline: none; font-family: 'Space Grotesk', sans-serif; font-size: 14px;"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
+      <div class="mf"><label>Quantities</label><div id="ccQuantities"></div><button type="button" id="ccAddQtyBtn" style="width:100%;padding:8px 12px;margin-top:6px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;color:var(--t2);font-size:13px;cursor:pointer;font-family:'Space Grotesk',sans-serif;">+ Add quantity</button></div>
       <button class="m-submit" id="ccSubmitBtn">Add Card</button>
     </div>
   </div>
@@ -868,9 +889,9 @@
     }
     async function refreshRings() {
       try {
-        const [rings, meals, settings, goals] = await Promise.all([
+        const [rings, meals, settings, goals, studyWeek] = await Promise.all([
           api('/api/rings/today'), api('/api/meals?date='+todayStr()),
-          api('/api/goals'),       api('/api/goal-tracker'),
+          api('/api/goals'),       api('/api/goal-tracker'), api('/api/study/week'),
         ]);
         const cg = parseInt(settings.calorie_goal||'1900'), pg = rings.protein_goal||parseInt(settings.protein_goal||'130');
         const cal = meals.reduce((s,m)=>s+(m.calories||0),0), pro = rings.protein_intake||0;
@@ -889,9 +910,31 @@
         document.getElementById('mCalFill').style.background = cOver > 0 ? '#FF4444' : 'var(--orange)';
         document.getElementById('mProFill').style.width  = pp+'%';
         document.getElementById('mTaskFill').style.width = tp+'%';
+
+        const studyGoal = parseInt(settings.study_goal || '240');
+        const studyToday = studyWeek.dailyTotals[todayStr()] || 0;
+        const studyPct = studyGoal ? Math.min(100, Math.round(studyToday / studyGoal * 100)) : 0;
+        document.getElementById('mStudyVal').textContent = studyToday + ' / ' + studyGoal + ' min';
+        document.getElementById('mStudyFill').style.width = studyPct + '%';
+
+        const max = Math.max(studyGoal, ...Object.values(studyWeek.dailyTotals), 1);
+        document.getElementById('mStudyBars').innerHTML = studyWeek.dates.map(d => {
+          const val = studyWeek.dailyTotals[d] || 0;
+          return `<div style="flex:1;background:var(--blue);height:${Math.round(val/max*100)}%;border-radius:2px;"></div>`;
+        }).join('');
+
+        const weekTotal = Object.values(studyWeek.dailyTotals).reduce((a,b)=>a+b,0);
+        document.getElementById('mStudySummary').textContent = `Week: ${weekTotal} min`;
+
         document.getElementById('mScore').textContent = (Math.round(((cp+pp+tp)/3)/10*10)/10).toFixed(1);
       } catch(e) {}
     }
+
+    // ── Study Graph Button ──
+    document.getElementById('mStudyGraphBtn')?.addEventListener('click', () => {
+      const c = document.getElementById('mStudyGraphContainer');
+      c.style.display = c.style.display === 'none' ? 'flex' : 'none';
+    });
 
     // ── Muscles ──
     async function refreshMuscles() {
@@ -1322,15 +1365,29 @@
     function renderCardTray(){
       const tray=document.getElementById('cardTray'); if(!tray) return;
       const hidden=(loadCardLayout().hidden)||[];
-      tray.innerHTML = hidden.map(k=>`<button data-show="${k}">+ ${k}</button>`).join('') + `<button id="trayAddCard">+ New card</button>`;
+      tray.innerHTML = hidden.map(k=>`<button data-show="${k}">+ ${k}</button>`).join('') + `<button id="trayAddCard">+ New card</button><button id="trayReset" title="Restore default">↺ Reset</button>`;
       tray.querySelectorAll('[data-show]').forEach(b=>b.addEventListener('click',()=>showCard(b.getAttribute('data-show'))));
       document.getElementById('trayAddCard')?.addEventListener('click',openAddCardModal);
+      document.getElementById('trayReset')?.addEventListener('click',()=>{ localStorage.removeItem(CARD_LAYOUT_KEY); location.reload(); });
     }
     document.getElementById('customizeBtn')?.addEventListener('click',()=>document.body.classList.toggle('customize-mode'));
 
+    let ccQuantities=[];
+    function wireQuantityButtons(){
+      const qtyContainer=document.getElementById('ccQuantities');
+      if(!qtyContainer) return;
+      qtyContainer.innerHTML=ccQuantities.map((qty,idx)=>`<div class="custom-log-row" style="margin-bottom:6px;"><input type="text" value="${qty}" placeholder="e.g. Small, Medium, Large" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:13px;outline:none;" data-qty-idx="${idx}"><button type="button" data-del-qty="${idx}" style="padding:8px 10px;border-radius:8px;border:none;background:#FF6B6B;color:#fff;cursor:pointer;font-weight:600;margin-left:4px;">×</button></div>`).join('');
+      qtyContainer.querySelectorAll('[data-qty-idx]').forEach(inp=>{
+        inp.addEventListener('change',()=>{ccQuantities[parseInt(inp.dataset.qtyIdx)]=inp.value;});
+      });
+      qtyContainer.querySelectorAll('[data-del-qty]').forEach(btn=>{
+        btn.addEventListener('click',e=>{e.preventDefault();const idx=parseInt(btn.dataset.delQty);ccQuantities.splice(idx,1);wireQuantityButtons();});
+      });
+    }
     function openAddCardModal(){ document.getElementById('addCardModal')?.classList.add('open'); }
     function closeAddCardModal(){ document.getElementById('addCardModal')?.classList.remove('open'); }
     document.getElementById('ccCloseBtn')?.addEventListener('click',closeAddCardModal);
+    document.getElementById('ccAddQtyBtn')?.addEventListener('click',e=>{e.preventDefault();ccQuantities.push('');wireQuantityButtons();});
     document.getElementById('ccSubmitBtn')?.addEventListener('click', async () => {
       const title=document.getElementById('ccTitle').value.trim(); if(!title) return;
       await api('/api/cards',{method:'POST',body:JSON.stringify({
@@ -1338,8 +1395,10 @@
         unit:document.getElementById('ccUnit').value.trim(),
         target_value:Number(document.getElementById('ccTarget').value)||1,
         viz_mode:document.getElementById('ccViz').value,
-        frequency:document.getElementById('ccFreq').value })});
+        frequency:document.getElementById('ccFreq').value,
+        quantities:ccQuantities.filter(q=>q.trim()) })});
       ['ccTitle','ccIcon','ccUnit','ccTarget'].forEach(id=>document.getElementById(id).value='');
+      ccQuantities=[];wireQuantityButtons();
       closeAddCardModal(); await renderCustomCards();
     });
     async function renderCustomCards(){
@@ -1352,16 +1411,18 @@
         let viz='';
         if(c.viz_mode==='ring'){ const C=327; viz=`<div style="display:flex;justify-content:center;margin:8px 0;"><svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--s3)" stroke-width="11"/><circle id="ccRing${c.id}" cx="60" cy="60" r="52" fill="none" stroke="var(--green)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 60 60)"/><text x="60" y="65" text-anchor="middle" fill="var(--t1)" font-size="18" font-weight="700">${c.current_value}</text></svg></div>`; }
         else { viz=`<div class="cbar-row" id="ccBars${c.id}"></div>`; }
+        const qtyRows=(c.quantities||[]).map((q,i)=>`<div class="custom-log-row"><input type="number" placeholder="log ${q}" step="any" id="ccInput${c.id}Q${i}"><button data-log="${c.id}" data-qty="${i}">↑</button></div>`).join('');
+        const defaultRow=!c.quantities||c.quantities.length===0?`<div class="custom-log-row"><input type="number" placeholder="log ${c.unit||'value'}" step="any" id="ccInput${c.id}"><button data-log="${c.id}">↑</button></div>`:'';
         el.innerHTML=`<button class="card-hide-btn" data-hide="custom-${c.id}">✕</button>
           <div class="lbl">${c.icon||''} ${c.title}</div>${viz}
           <div style="font-size:11px;color:var(--t3);text-align:right;">${c.current_value} / ${c.target_value} ${c.unit||''}</div>
-          <div class="custom-log-row"><input type="number" placeholder="log ${c.unit||'value'}" step="any" id="ccInput${c.id}"><button data-log="${c.id}">↑</button></div>`;
+          ${qtyRows}${defaultRow}`;
         container.appendChild(el);
         if(c.viz_mode==='ring') setTimeout(()=>{const r=document.getElementById('ccRing'+c.id); if(r){const C=327; r.style.transition='stroke-dashoffset 1s'; r.setAttribute('stroke-dashoffset',Math.round(C*(1-pct/100)));}},50);
         if(c.viz_mode==='bar'||c.viz_mode==='line'){ try { const {series}=await api('/api/cards/'+c.id+'/series?n=7'); const max=Math.max(c.target_value,...series.map(s=>s.value),1); document.getElementById('ccBars'+c.id).innerHTML=series.map(s=>`<div class="cbar-col"><div class="cbar-track"><div class="cbar-fill" style="height:${Math.round((s.value/max)*100)}%"></div></div><div class="cbar-lbl">${s.period_key.slice(5)}</div></div>`).join(''); } catch {} }
       }
       container.querySelectorAll('[data-hide]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();hideCard(b.getAttribute('data-hide'));}));
-      container.querySelectorAll('[data-log]').forEach(b=>b.addEventListener('click',async()=>{const id=b.getAttribute('data-log');const inp=document.getElementById('ccInput'+id);const v=Number(inp.value);if(isNaN(v))return;await api('/api/cards/'+id+'/log',{method:'POST',body:JSON.stringify({value:v})});inp.value='';await renderCustomCards();}));
+      container.querySelectorAll('[data-log]').forEach(b=>b.addEventListener('click',async()=>{const id=b.getAttribute('data-log');const qtyIdx=b.getAttribute('data-qty');const inp=qtyIdx!==null?document.getElementById('ccInput'+id+'Q'+qtyIdx):document.getElementById('ccInput'+id);const v=Number(inp.value);if(isNaN(v))return;await api('/api/cards/'+id+'/log',{method:'POST',body:JSON.stringify({value:v,quantity_index:qtyIdx!==null?parseInt(qtyIdx):undefined})});inp.value='';await renderCustomCards();}));
       applyCardLayout();
     }
 

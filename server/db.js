@@ -214,6 +214,7 @@ export function initDB() {
     ['protein_goal', '130'],
     ['calorie_goal', '1900'],
     ['weight_unit', 'kg'],
+    ['study_goal', '240'],  // 4 hours in minutes
   ];
   const upsertGoal = db.prepare(
     'INSERT OR IGNORE INTO goals (key, value) VALUES (?, ?)'
@@ -237,6 +238,12 @@ export function initDB() {
     const setOrder = db.prepare('UPDATE habits SET sort_order = ? WHERE name = ?');
     order.forEach((name, i) => setOrder.run(i + 1, name));
     // Any habits not in the list above keep sort_order 0 and will sort first by id
+  }
+
+  // Migration: add quantities to custom_cards (multi-value logging)
+  const ccCols = db.prepare("PRAGMA table_info(custom_cards)").all();
+  if (!ccCols.some(c => c.name === 'quantities')) {
+    db.exec('ALTER TABLE custom_cards ADD COLUMN quantities TEXT DEFAULT \'[]\'');
   }
 
   console.log('Database initialised');
