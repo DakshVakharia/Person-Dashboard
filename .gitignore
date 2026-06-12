@@ -32,4 +32,3 @@ Thumbs.db
 # Vite temp files
 *.timestamp-*.mjs
 .claude/settings.local.json
-images/
