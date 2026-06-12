@@ -38,18 +38,14 @@ Log runs with distance, pace, cadence, and BPM. Weekly bar chart shows each day'
 ### Study Log
 Log study sessions by subject with hours and minutes. Shows a running total for the day.
 
-### Weight Log
-Simple weight entries with date.
-
 ### Weekly & Monthly Reports
 One-click reports that summarise average calories, average protein, habit completion rate, weight change, and goal completion over the last 7 or 30 days.
 
 ### Google Drive Backup
 Automatic nightly backup of the SQLite database to Google Drive. Manual trigger also available from the dashboard.
 
-### Reminders
-Time-based reminders with optional recurrence.
-
+### General Purpose cards
+User can create his own tracking cards eg- water or insulin. Value and units are to be entered and the user has the options of Bar graph, rings, or line graph visualizations along with a choice between logging frequency- weekly or daily 
 ---
 
 ## Tech stack
