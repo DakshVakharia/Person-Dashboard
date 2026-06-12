@@ -145,8 +145,12 @@ if (fs.existsSync(mobilHtmlPath)) {
 // Small standalone "rings" widget — meant to be opened in its own floating,
 // always-on-top borderless window (see widget.html for details).
 const widgetHtmlPath = path.join(__dirname, '../widget.html');
+const studyWidgetHtmlPath = path.join(__dirname, '../study-widget.html');
 if (fs.existsSync(widgetHtmlPath)) {
   app.get(['/widget', '/widget.html'], (req, res) => res.sendFile(widgetHtmlPath));
+}
+if (fs.existsSync(studyWidgetHtmlPath)) {
+  app.get(['/study-widget', '/study-widget.html'], (req, res) => res.sendFile(studyWidgetHtmlPath));
 }
 
 // Serve built React app in production
