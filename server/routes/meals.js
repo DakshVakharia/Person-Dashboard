@@ -28,8 +28,8 @@ router.get('/', requireAuth, (req, res) => {
 });
 
 router.post('/', requireAuth, (req, res) => {
-  const today = todayStr();
-  const { name, calories, protein, carbs, fat, notes } = req.body;
+  const { name, calories, protein, carbs, fat, notes, date: bodyDate } = req.body;
+  const today = bodyDate || todayStr();
   if (!name) return res.status(400).json({ error: 'name required' });
 
   const info = db.prepare(`
@@ -96,11 +96,11 @@ router.delete('/:id', requireAuth, (req, res) => {
 
 // POST /api/meals/parse — natural language → macros → logged
 router.post('/parse', requireAuth, async (req, res) => {
-  const { text } = req.body;
+  const { text, date: bodyDate } = req.body;
   if (!text) return res.status(400).json({ error: 'text required' });
   try {
     const meal = await parseMeal(text);
-    const date = todayStr();
+    const date = bodyDate || todayStr();
     const result = db.prepare(
       'INSERT INTO meals (name, calories, protein, carbs, fat, date) VALUES (?,?,?,?,?,?)'
     ).run(meal.name, meal.calories||0, meal.protein||0, meal.carbs||0, meal.fat||0, date);

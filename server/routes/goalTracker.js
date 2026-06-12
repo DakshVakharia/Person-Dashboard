@@ -19,7 +19,11 @@ function withProgress(goal, key) {
 // List active goals with their progress for the current period (today/this week/this month)
 router.get('/', requireAuth, (req, res) => {
   const goals = db.prepare('SELECT * FROM goal_definitions WHERE is_active = 1 ORDER BY period, id').all();
-  const now = new Date();
+  let now = new Date();
+  if (req.query.date) {
+    const [y, m, d] = req.query.date.split('-').map(Number);
+    now = new Date(y, m - 1, d);
+  }
   res.json(goals.map(g => withProgress(g, periodKey(g.period, now))));
 });
 
@@ -73,8 +77,13 @@ router.post('/:id/progress', requireAuth, (req, res) => {
   const goal = db.prepare('SELECT * FROM goal_definitions WHERE id = ?').get(req.params.id);
   if (!goal) return res.status(404).json({ error: 'goal not found' });
 
-  const { delta, value } = req.body;
-  const key = periodKey(goal.period, new Date());
+  const { delta, value, date } = req.body;
+  let when = new Date();
+  if (date) {
+    const [y, m, d] = date.split('-').map(Number);
+    when = new Date(y, m - 1, d);
+  }
+  const key = periodKey(goal.period, when);
   const existing = db.prepare('SELECT * FROM goal_progress WHERE goal_id = ? AND period_key = ?').get(goal.id, key);
 
   const newValue = value !== undefined ? Number(value) : (existing?.value || 0) + Number(delta ?? 1);

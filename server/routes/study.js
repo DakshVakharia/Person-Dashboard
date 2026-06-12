@@ -14,11 +14,11 @@ router.get('/', requireAuth, (req, res) => {
 
 // POST /api/study
 router.post('/', requireAuth, (req, res) => {
-  const { title, hours, minutes } = req.body;
+  const { title, hours, minutes, date: bodyDate } = req.body;
   if (!title) return res.status(400).json({ error: 'title required' });
   const duration = (parseInt(hours) || 0) * 60 + (parseInt(minutes) || 0);
   if (duration <= 0) return res.status(400).json({ error: 'duration must be > 0' });
-  const date = todayStr();
+  const date = bodyDate || todayStr();
   const info = db.prepare(
     'INSERT INTO study_sessions (date, title, duration_minutes) VALUES (?, ?, ?)'
   ).run(date, title.trim(), duration);

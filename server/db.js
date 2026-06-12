@@ -185,12 +185,34 @@ export function initDB() {
       duration_minutes INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS custom_cards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      icon TEXT DEFAULT '📊',
+      value_label TEXT DEFAULT '',
+      unit TEXT DEFAULT '',
+      viz_mode TEXT NOT NULL DEFAULT 'ring',
+      frequency TEXT NOT NULL DEFAULT 'daily',
+      target_value REAL DEFAULT 1,
+      is_active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS custom_card_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      card_id INTEGER NOT NULL,
+      period_key TEXT NOT NULL,
+      value REAL DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(card_id, period_key),
+      FOREIGN KEY (card_id) REFERENCES custom_cards(id) ON DELETE CASCADE
+    );
   `);
 
   // Seed default goals
   const defaults = [
     ['protein_goal', '130'],
-    ['calorie_goal', '2200'],
+    ['calorie_goal', '1900'],
     ['weight_unit', 'kg'],
   ];
   const upsertGoal = db.prepare(
@@ -207,13 +229,23 @@ export function initDB() {
     );
   }
 
+  // Migration: add sort_order to habits for chronological (time-of-day) ordering
+  const habitCols = db.prepare("PRAGMA table_info(habits)").all();
+  if (!habitCols.some(c => c.name === 'sort_order')) {
+    db.exec('ALTER TABLE habits ADD COLUMN sort_order INTEGER DEFAULT 0');
+    const order = ['Wake up at 6', 'Meditation', 'Morning Serum', 'Gym', 'Creatine', 'Reading', 'Night Serum', 'Sleep at 11:30'];
+    const setOrder = db.prepare('UPDATE habits SET sort_order = ? WHERE name = ?');
+    order.forEach((name, i) => setOrder.run(i + 1, name));
+    // Any habits not in the list above keep sort_order 0 and will sort first by id
+  }
+
   console.log('Database initialised');
 }
 
 // Format a Date using its LOCAL calendar date (not toISOString, which converts
 // to UTC first — that's off-by-one near midnight / in timezones ahead of UTC,
 // e.g. local midnight Monday in CEST becomes "Sunday 22:00 UTC").
-function localDateStr(d) {
+export function localDateStr(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');

@@ -4,6 +4,9 @@ A self-hosted web app I built to track my daily life in one place — meals, wor
 
 Built as my first real web project using [Claude Code](https://claude.ai/code), with little to no prior web development experience.
 
+![Desktop Dashboard](images/dashboard_desktop.png)
+![Mobile Dashboard](images/dashboard_mobile.png)
+
 ---
 
 ## What it does

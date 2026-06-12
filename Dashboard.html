@@ -178,6 +178,23 @@
       border: 1px solid rgba(212, 212, 224, 0.5);
     }
 
+    .card.dragging { opacity: 0.4; }
+    .card.drag-over { outline: 2px dashed var(--green); outline-offset: 2px; }
+    body.customize-mode .card { cursor: grab; position: relative; }
+    .card-hide-btn { display: none; position: absolute; top: 6px; right: 8px; z-index: 5; background: var(--s3); color: var(--t1); border: 1px solid var(--bd); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; font-size: 13px; line-height: 1; }
+    body.customize-mode .card-hide-btn { display: flex; align-items: center; justify-content: center; }
+    #cardTray { display: none; }
+    body.customize-mode #cardTray { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; }
+    #cardTray button { background: var(--s2); border: 1px solid var(--bd); border-radius: 8px; padding: 5px 10px; color: var(--t2); cursor: pointer; font-size: 12px; }
+    .custom-log-row { display: flex; gap: 6px; margin-top: 8px; }
+    .custom-log-row input { flex: 1; padding: 6px 9px; border-radius: 8px; border: 1px solid var(--bd); background: var(--s2); color: var(--t1); font-size: 12.5px; outline: none; }
+    .custom-log-row button { padding: 6px 12px; border-radius: 8px; border: none; background: var(--green); color: #09090B; font-weight: 700; cursor: pointer; }
+    .cbar-row { display: flex; align-items: flex-end; gap: 4px; height: 70px; margin-top: 8px; }
+    .cbar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .cbar-track { width: 100%; height: 60px; background: var(--s3); border-radius: 4px; display: flex; align-items: flex-end; overflow: hidden; }
+    .cbar-fill { width: 100%; background: var(--green); border-radius: 4px 4px 0 0; transition: height 0.6s; }
+    .cbar-lbl { font-size: 8px; color: var(--t3); }
+
     .lbl {
       font-size: 10px;
       font-weight: 600;
@@ -659,7 +676,11 @@
       flex-direction: column;
       align-items: center;
       gap: 1px;
+      cursor: pointer;
+      user-select: none;
     }
+
+    .mg-info:active { transform: scale(0.94); }
 
     .mg-name { font-size: 22px; line-height: 1; }
     .mg-label { font-size: 8px; color: var(--t2); font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
@@ -1035,9 +1056,11 @@
   <!-- ═══ GRID ═══ -->
   <div class="grid">
 
+    <div id="cardTray" style="grid-column:1 / -1;"></div>
+
     <!-- ─── LEFT: Calendar + Agenda ─── -->
     <div class="col" id="colLeft">
-      <div class="card">
+      <div class="card" data-card-key="calendar">
         <div class="lbl">Calendar</div>
         <div class="cal-head">
           <span class="cal-month-title" id="calDayLabel">Monday, June 8</span>
@@ -1062,11 +1085,26 @@
       </div>
 
       <!-- Study Log card -->
-      <div class="card">
-        <div class="lbl">Study Log</div>
-        <div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">
-          <input id="studyTitle" type="text" placeholder="Subject / topic"
-            style="width:100%;padding:7px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'Space Grotesk',sans-serif;font-size:12.5px;outline:none;" />
+      <div class="card" data-card-key="study">
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <select id="studySubject"
+            style="width:100%;padding:7px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'Space Grotesk',sans-serif;font-size:12.5px;outline:none;">
+            <option>MET E</option>
+            <option>MET M</option>
+            <option>LOCO</option>
+            <option>SE</option>
+            <option>CS</option>
+            <option>ACT FM</option>
+            <option>ACT E</option>
+            <option>ES</option>
+          </select>
+          <!-- Stopwatch -->
+          <div style="display:flex;gap:7px;align-items:center;">
+            <div id="studyTimer" style="flex:1;padding:7px 8px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:14px;text-align:center;letter-spacing:0.04em;">00:00:00</div>
+            <button id="studyTimerBtn"
+              style="padding:7px 14px;border-radius:9px;border:none;background:var(--green);color:#09090B;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">▶ Start</button>
+          </div>
+          <!-- Manual entry -->
           <div style="display:flex;gap:7px;">
             <input id="studyHours" type="number" placeholder="hrs" min="0" max="23"
               style="flex:1;padding:7px 8px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:12.5px;outline:none;text-align:center;" />
@@ -1085,7 +1123,7 @@
     <div class="col" id="colCenter" style="margin-top:-93px;">
 
       <!-- Concentric rings: Calories · Protein · Tasks -->
-      <div class="card" style="--d:0.09s">
+      <div class="card" data-card-key="rings" style="--d:0.09s">
         <div class="lbl">Today's Progress</div>
         <div style="display:flex;gap:6px;margin-bottom:12px;">
           <input id="aiMealInput" type="text" placeholder="I had 2 eggs and toast…" autocomplete="off"
@@ -1105,6 +1143,11 @@
               <!-- Calories (outer) · C=2π×86≈540 -->
               <circle class="ring-anim" id="ringCalories" data-target="540" cx="98" cy="98" r="86"
                 stroke="var(--orange)" stroke-width="11"
+                stroke-dasharray="540" stroke-dashoffset="540"
+                stroke-linecap="round"/>
+              <!-- Calories overflow (drawn on top, red, fills as calories exceed goal) -->
+              <circle class="ring-anim" id="ringCaloriesOver" data-target="540" cx="98" cy="98" r="86"
+                stroke="#FF4444" stroke-width="11"
                 stroke-dasharray="540" stroke-dashoffset="540"
                 stroke-linecap="round"/>
               <!-- Protein (middle) · C=2π×66≈415 -->
@@ -1177,6 +1220,7 @@
           Habits
           <span class="run-week-pill" id="habitsPill">5 / 6</span>
         </button>
+        <!-- Goals button (commented out for now, restore later)
         <button class="run-open-btn" id="goalsOpenBtn" style="flex:1;">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"/>
@@ -1186,6 +1230,7 @@
           Goals
           <span class="run-week-pill" id="goalsPill">3 / 5</span>
         </button>
+        -->
         <button class="run-open-btn" id="logsOpenBtn" style="flex:1;">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M2 2.5h10M2 7h10M2 11.5h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
@@ -1218,7 +1263,7 @@
         </div>
       </div>
 
-      <!-- Goals modal -->
+      <!-- Goals modal (commented out for now, restore later)
       <div class="modal-backdrop" id="goalsModal">
         <div class="modal" style="width:400px;">
           <div class="modal-header">
@@ -1228,6 +1273,7 @@
           <div class="goals" id="goalsList"></div>
         </div>
       </div>
+      -->
 
       <!-- Add / Edit Meal modal -->
       <div class="modal-backdrop" id="addMealModal">
@@ -1286,6 +1332,25 @@
         </div>
       </div>
 
+      <!-- Add Custom Card modal -->
+      <div class="modal-backdrop" id="addCardModal">
+        <div class="modal" style="width:360px;">
+          <div class="modal-header">
+            <span class="modal-title">Add Card</span>
+            <button class="modal-close" id="addCardCloseBtn">&times;</button>
+          </div>
+          <div class="run-fields" style="grid-template-columns:1fr 1fr;">
+            <div class="run-field" style="grid-column:1 / -1;"><label>Title</label><input type="text" id="ccTitle" placeholder="e.g. Water" maxlength="40"></div>
+            <div class="run-field"><label>Icon</label><input type="text" id="ccIcon" placeholder="💧" maxlength="4"></div>
+            <div class="run-field"><label>Unit</label><input type="text" id="ccUnit" placeholder="L" maxlength="10"></div>
+            <div class="run-field"><label>Target</label><input type="number" id="ccTarget" placeholder="2" step="any"></div>
+            <div class="run-field"><label>Visualization</label><select id="ccViz" style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:13px;outline:none;"><option value="ring">Ring</option><option value="bar">Bar graph</option><option value="line">Line graph</option></select></div>
+            <div class="run-field" style="grid-column:1 / -1;"><label>Frequency</label><select id="ccFreq" style="width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:13px;outline:none;"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
+          </div>
+          <button class="run-log-btn" id="ccSubmitBtn">Add Card</button>
+        </div>
+      </div>
+
       <!-- Calendar Event Edit modal -->
       <div class="modal-backdrop" id="calEditModal">
         <div class="modal" style="width:340px;">
@@ -1326,7 +1391,7 @@
             <div class="hab-days-h" id="habDaysHdr">
               <div class="hd">M</div><div class="hd">T</div><div class="hd">W</div>
               <div class="hd">T</div><div class="hd">F</div><div class="hd">S</div>
-              <div class="hd active">S</div>
+              <div class="hd">S</div>
             </div>
             <div class="hab-streak-h">streak</div>
           </div>
@@ -1335,7 +1400,7 @@
       </div>
 
       <!-- Daily Goals — horizontal 2-col grid -->
-      <div class="card">
+      <div class="card" data-card-key="daily-goals">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div class="lbl" style="margin-bottom:0;">Daily Goals</div>
           <div style="display:flex;align-items:center;gap:8px;">
@@ -1346,6 +1411,8 @@
         </div>
         <div class="dg-list" id="dgList" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;"></div>
       </div>
+
+      <div id="customCardsContainer" style="display:flex;flex-direction:column;gap:12px;"></div>
 
     </div>
 
@@ -1361,7 +1428,7 @@
         <span class="run-week-pill" id="runsPill">4 runs · 23.4km</span>
       </button>
 
-      <div class="card run-log-card">
+      <div class="card run-log-card" data-card-key="running">
         <div class="lbl">Log Today's Run</div>
         <div class="run-fields" style="grid-template-columns:1fr 1fr;">
           <div class="run-field">
@@ -1448,7 +1515,7 @@
       </div>
 
       <!-- Muscle groups -->
-      <div class="card" style="--d:0.14s">
+      <div class="card" data-card-key="muscle-groups" style="--d:0.14s">
         <div class="lbl">Muscles Hit · This Week</div>
         <div class="mg-grid">
           <div class="mg-chip" data-muscle="Chest">
@@ -1459,7 +1526,6 @@
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
-              <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
           <div class="mg-chip" data-muscle="Back">
@@ -1470,7 +1536,6 @@
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
-              <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
           <div class="mg-chip" data-muscle="Shoulders">
@@ -1481,7 +1546,6 @@
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
-              <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
           <div class="mg-chip" data-muscle="Quads">
@@ -1492,7 +1556,6 @@
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
-              <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
           <div class="mg-chip" data-muscle="Hamstrings">
@@ -1503,7 +1566,6 @@
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
-              <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
           <div class="mg-chip" data-muscle="Calves">
@@ -1514,7 +1576,6 @@
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
-              <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
           <div class="mg-chip" data-muscle="Biceps">
@@ -1525,7 +1586,6 @@
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
-              <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
           <div class="mg-chip" data-muscle="Triceps">
@@ -1536,7 +1596,6 @@
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
-              <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
           <div class="mg-chip" data-muscle="Core">
@@ -1547,7 +1606,6 @@
             </div>
             <div class="mg-counter">
               <button class="mg-btn mg-minus">−</button>
-              <button class="mg-btn mg-plus">+</button>
             </div>
           </div>
         </div>
@@ -1572,10 +1630,11 @@
 
   <!-- ═══ BOTTOM BAR ═══ -->
   <div style="position:fixed;bottom:16px;right:20px;display:flex;gap:8px;z-index:100;">
-    <button id="weekReportBtn" title="Weekly Report" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--t2);">7d</button>
-    <button id="monthReportBtn" title="Monthly Report" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t2);">30d</button>
-    <button id="backupBtn" title="Backup to Google Drive" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);">💾</button>
-    <button class="theme-btn" id="themeBtn" title="Toggle theme" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:rgba(30,30,42,0.8);backdrop-filter:blur(8px);">☀</button>
+    <button id="weekReportBtn" title="Weekly Report" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--t2);">7d</button>
+    <button id="monthReportBtn" title="Monthly Report" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t2);">30d</button>
+    <button id="backupBtn" title="Backup to Google Drive" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);">💾</button>
+    <button id="customizeBtn" title="Customize cards" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--t2);">⚙</button>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);">☀</button>
   </div>
 
   <script>
@@ -1590,7 +1649,9 @@
       const ct = res.headers.get('content-type') || '';
       return ct.includes('application/json') ? res.json() : null;
     }
-    function todayStr() { return new Date().toISOString().split('T')[0]; }
+    function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    // The date currently shown in the calendar/agenda card — driving all date-scoped cards (meals, rings, goals, habits, study)
+    function activeDateStr() { return calDateStr(calViewedDate); }
 
     // ── Live clock + date ──
     const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1789,7 +1850,7 @@
         setCount(n - 1);
         try { await api('/api/workouts/decrement', { method: 'POST', body: JSON.stringify({ muscle_group: muscle }) }); } catch (e) {}
       });
-      chip.querySelector('.mg-plus').addEventListener('click', async () => {
+      chip.querySelector('.mg-info').addEventListener('click', async () => {
         setCount(parseInt(badge.textContent) + 1);
         try { await api('/api/workouts', { method: 'POST', body: JSON.stringify({ muscle_group: muscle }) }); } catch (e) {}
       });
@@ -1841,7 +1902,7 @@
       item.classList.toggle('done', !isDone);
       updateDGProgress();
       try {
-        await api(`/api/goal-tracker/${id}/progress`, { method: 'POST', body: JSON.stringify({ value: isDone ? 0 : 1 }) });
+        await api(`/api/goal-tracker/${id}/progress`, { method: 'POST', body: JSON.stringify({ value: isDone ? 0 : 1, date: activeDateStr() }) });
       } catch (e) {}
       refreshRings();
     });
@@ -1849,6 +1910,7 @@
     // ── Goal tracker: daily list (above) + weekly/monthly list (Goals modal) + pill ──
     function renderGoalsList(goals) {
       const list = document.getElementById('goalsList');
+      if (!list) return; // Goals card is currently commented out
       document.getElementById('goalsModalTitle').textContent = 'Goals · ' + new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
       const completed = goals.filter(g => g.completed).length;
       document.getElementById('goalsPill').textContent = `${completed} / ${goals.length}`;
@@ -1866,7 +1928,7 @@
     }
     async function refreshGoalTracker() {
       try {
-        const goals = await api('/api/goal-tracker');
+        const goals = await api('/api/goal-tracker?date=' + activeDateStr());
         const daily = goals.filter(g => g.period === 'daily');
         const nonDaily = goals.filter(g => g.period !== 'daily');
         renderDailyGoals(daily);
@@ -1879,24 +1941,27 @@
     async function refreshRings() {
       try {
         const [rings, meals, settings, taskStats] = await Promise.all([
-          api('/api/rings/today'),
-          api('/api/meals?date=' + todayStr()),
+          api('/api/rings/today?date=' + activeDateStr()),
+          api('/api/meals?date=' + activeDateStr()),
           api('/api/goals'),
           refreshGoalTracker(),
         ]);
-        const calorieGoal = parseInt(settings.calorie_goal || '2200');
+        const calorieGoal = parseInt(settings.calorie_goal || '1900');
         const proteinGoal = rings.protein_goal || parseInt(settings.protein_goal || '130');
         const calories = meals.reduce((s, m) => s + (m.calories || 0), 0);
         const protein  = rings.protein_intake || 0;
 
-        const calPct  = calorieGoal ? Math.min(100, Math.round((calories / calorieGoal) * 100)) : 0;
+        const calPctRaw = calorieGoal ? Math.round((calories / calorieGoal) * 100) : 0;
+        const calPct    = Math.min(100, calPctRaw);
+        const calOverPct = calPctRaw > 100 ? Math.min(100, calPctRaw - 100) : 0;
         const proPct  = proteinGoal ? Math.min(100, Math.round((protein / proteinGoal) * 100)) : 0;
         const taskPct = taskStats.pct;
 
-        document.getElementById('calPct').textContent  = calPct + '%';
+        document.getElementById('calPct').textContent  = calPctRaw + '%';
         document.getElementById('calMain').textContent = Math.round(calories);
         document.getElementById('calGoal').textContent = `/ ${calorieGoal} kcal`;
         document.getElementById('calFill').style.width = calPct + '%';
+        document.getElementById('calFill').style.background = calOverPct > 0 ? '#FF4444' : 'var(--orange)';
 
         document.getElementById('proPct').textContent  = proPct + '%';
         document.getElementById('proMain').textContent = Math.round(protein) + 'g';
@@ -1908,6 +1973,8 @@
         document.getElementById('taskFill').style.width = taskPct + '%';
 
         setRing('ringCalories', 540, calPct);
+        setRing('ringCaloriesOver', 540, calOverPct);
+        document.getElementById('ringCaloriesOver').style.opacity = calOverPct > 0 ? '1' : '0';
         setRing('ringProtein', 415, proPct);
         setRing('ringTasks', 289, taskPct);
 
@@ -1957,18 +2024,20 @@
     habCloseBtn.addEventListener('click', () => { habModal.classList.remove('open'); document.body.style.overflow = ''; });
     habModal.addEventListener('click', e => { if (e.target === habModal) { habModal.classList.remove('open'); document.body.style.overflow = ''; } });
 
-    // ── Goals modal ──
+    // ── Goals modal (commented out for now, restore later) ──
     const goalsModal    = document.getElementById('goalsModal');
     const goalsOpenBtn  = document.getElementById('goalsOpenBtn');
     const goalsCloseBtn = document.getElementById('goalsCloseBtn');
-    goalsOpenBtn.addEventListener('click', () => { goalsModal.classList.add('open'); document.body.style.overflow = 'hidden'; });
-    goalsCloseBtn.addEventListener('click', () => { goalsModal.classList.remove('open'); document.body.style.overflow = ''; });
-    goalsModal.addEventListener('click', e => { if (e.target === goalsModal) { goalsModal.classList.remove('open'); document.body.style.overflow = ''; } });
+    if (goalsModal && goalsOpenBtn && goalsCloseBtn) {
+      goalsOpenBtn.addEventListener('click', () => { goalsModal.classList.add('open'); document.body.style.overflow = 'hidden'; });
+      goalsCloseBtn.addEventListener('click', () => { goalsModal.classList.remove('open'); document.body.style.overflow = ''; });
+      goalsModal.addEventListener('click', e => { if (e.target === goalsModal) { goalsModal.classList.remove('open'); document.body.style.overflow = ''; } });
+    }
 
     // ── Meal List ──
     async function refreshMealList() {
       try {
-        const meals = await api('/api/meals?date=' + todayStr());
+        const meals = await api('/api/meals?date=' + activeDateStr());
         const el = document.getElementById('mealLogList');
         if (!meals.length) { el.innerHTML = ''; return; }
         el.innerHTML = meals.map(m => `
@@ -1992,7 +2061,7 @@
       const orig = aiBtn.textContent;
       aiBtn.textContent = '…'; aiBtn.disabled = true; aiInput.disabled = true;
       try {
-        await fetch('/api/meals/parse', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+        await fetch('/api/meals/parse', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, date: activeDateStr() }) });
         aiInput.value = '';
         aiBtn.textContent = '✅';
         refreshMealList();
@@ -2036,7 +2105,7 @@
     // ── Study Log ──
     async function refreshStudyList() {
       try {
-        const { sessions, total_minutes } = await api('/api/study');
+        const { sessions, total_minutes } = await api('/api/study?date=' + activeDateStr());
         const list = document.getElementById('studyList');
         const totalEl = document.getElementById('studyTotal');
         if (!sessions.length) { list.innerHTML = ''; totalEl.textContent = ''; return; }
@@ -2057,17 +2126,15 @@
     window.deleteStudy = async (id) => {
       try { await api('/api/study/' + id, { method: 'DELETE' }); refreshStudyList(); } catch(e) {}
     };
-    async function submitStudy() {
-      const title = document.getElementById('studyTitle').value.trim();
-      const hours = document.getElementById('studyHours').value;
-      const mins  = document.getElementById('studyMins').value;
-      if (!title) { document.getElementById('studyTitle').focus(); return; }
+    async function submitStudy(hoursOverride, minsOverride) {
+      const title = document.getElementById('studySubject').value;
+      const hours = hoursOverride !== undefined ? hoursOverride : document.getElementById('studyHours').value;
+      const mins  = minsOverride  !== undefined ? minsOverride  : document.getElementById('studyMins').value;
       if (!hours && !mins) { document.getElementById('studyHours').focus(); return; }
       const btn = document.getElementById('studyLogBtn');
       btn.textContent = '…'; btn.disabled = true;
       try {
-        await api('/api/study', { method: 'POST', body: JSON.stringify({ title, hours, minutes: mins }) });
-        document.getElementById('studyTitle').value = '';
+        await api('/api/study', { method: 'POST', body: JSON.stringify({ title, hours, minutes: mins, date: activeDateStr() }) });
         document.getElementById('studyHours').value = '';
         document.getElementById('studyMins').value = '';
         btn.textContent = '✅';
@@ -2079,9 +2146,44 @@
       }
       btn.disabled = false;
     }
-    document.getElementById('studyLogBtn').addEventListener('click', submitStudy);
-    document.getElementById('studyTitle').addEventListener('keydown', e => { if (e.key === 'Enter') submitStudy(); });
+    document.getElementById('studyLogBtn').addEventListener('click', () => submitStudy());
     document.getElementById('studyMins').addEventListener('keydown',  e => { if (e.key === 'Enter') submitStudy(); });
+
+    // ── Study Stopwatch ──
+    let studyTimerInterval = null;
+    let studyTimerStart = null;
+    function formatStudyElapsed(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      return [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+    }
+    document.getElementById('studyTimerBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('studyTimerBtn');
+      const display = document.getElementById('studyTimer');
+      if (!studyTimerInterval) {
+        // Start
+        studyTimerStart = Date.now();
+        btn.textContent = '■ Stop';
+        btn.style.background = '#FF4444';
+        studyTimerInterval = setInterval(() => {
+          display.textContent = formatStudyElapsed(Date.now() - studyTimerStart);
+        }, 1000);
+      } else {
+        // Stop
+        clearInterval(studyTimerInterval);
+        studyTimerInterval = null;
+        const elapsedMs = Date.now() - studyTimerStart;
+        const totalMinutes = Math.round(elapsedMs / 60000);
+        btn.textContent = '▶ Start';
+        btn.style.background = 'var(--green)';
+        display.textContent = '00:00:00';
+        if (totalMinutes > 0) {
+          await submitStudy(Math.floor(totalMinutes / 60), totalMinutes % 60);
+        }
+      }
+    });
 
     // ── Calendar: delete + edit via agenda list buttons ──
     document.getElementById('agendaList').addEventListener('click', async e => {
@@ -2187,6 +2289,7 @@
             protein: Number(addMealProtein.value) || 0,
             carbs: Number(addMealCarbs.value) || 0,
             fat: Number(addMealFat.value) || 0,
+            date: activeDateStr(),
           }),
         });
         closeAddMealModal();
@@ -2237,10 +2340,15 @@
     addGoalTitle.addEventListener('keydown', e => { if (e.key === 'Enter') submitAddGoal(); });
     addGoalIcon.addEventListener('keydown', e => { if (e.key === 'Enter') submitAddGoal(); });
 
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { habModal.classList.remove('open'); document.getElementById('runModal').classList.remove('open'); goalsModal.classList.remove('open'); logsModal.classList.remove('open'); document.getElementById('calEditModal')?.classList.remove('open'); document.getElementById('reportModal')?.classList.remove('open'); closeAddGoalModal(); closeAddMealModal(); document.body.style.overflow = ''; } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { habModal.classList.remove('open'); document.getElementById('runModal').classList.remove('open'); goalsModal?.classList.remove('open'); logsModal.classList.remove('open'); document.getElementById('calEditModal')?.classList.remove('open'); document.getElementById('reportModal')?.classList.remove('open'); closeAddGoalModal(); closeAddMealModal(); document.body.style.overflow = ''; } });
 
     // ── Habits modal: render grid + wire checkbox toggles ──
     function renderHabitsModal(week) {
+      const hdr = document.getElementById('habDaysHdr');
+      const todayD = todayStr();
+      const dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      hdr.innerHTML = week.dates.map((d, i) => `<div class="hd ${d === todayD ? 'active' : ''}">${dayLetters[i]}</div>`).join('');
+
       const rows = document.getElementById('habRows');
       rows.innerHTML = week.habits.map(h => `
         <div class="hab-row" data-id="${h.id}">
@@ -2268,7 +2376,7 @@
     });
     async function refreshHabits() {
       try {
-        const [today, week] = await Promise.all([api('/api/habits'), api('/api/habits/week')]);
+        const [today, week] = await Promise.all([api('/api/habits?date=' + activeDateStr()), api('/api/habits/week')]);
         const done = today.filter(h => h.completed_today).length;
         document.getElementById('habitsPill').textContent = `${done} / ${today.length}`;
         renderHabitsModal(week);
@@ -2538,13 +2646,20 @@
       catch (e) { renderAgenda([]); }
     }
 
+    function refreshDateScopedCards() {
+      refreshAgenda();
+      refreshRings();
+      refreshMealList();
+      refreshStudyList();
+      refreshHabits();
+    }
     document.getElementById('calPrevBtn')?.addEventListener('click', () => {
       calViewedDate.setDate(calViewedDate.getDate() - 1);
-      refreshAgenda();
+      refreshDateScopedCards();
     });
     document.getElementById('calNextBtn')?.addEventListener('click', () => {
       calViewedDate.setDate(calViewedDate.getDate() + 1);
-      refreshAgenda();
+      refreshDateScopedCards();
     });
 
     document.getElementById('calRefreshBtn')?.addEventListener('click', async () => {
@@ -2724,6 +2839,176 @@
       syncMode();
       window.addEventListener('resize', syncMode);
     })();
+
+    // ===== Customizable cards =====
+    const CARD_LAYOUT_KEY = 'dash-card-layout-desktop';
+    function loadCardLayout() { try { return JSON.parse(localStorage.getItem(CARD_LAYOUT_KEY)) || {}; } catch { return {}; } }
+    function saveCardLayout(l) { localStorage.setItem(CARD_LAYOUT_KEY, JSON.stringify(l)); }
+
+    function applyCardLayout() {
+      const layout = loadCardLayout();
+      const hidden = layout.hidden || [];
+      const colOrder = layout.colOrder || {};
+      // Re-apply saved per-column order by physically moving DOM nodes
+      Object.keys(colOrder).forEach(colId => {
+        const col = document.getElementById(colId);
+        if (!col) return;
+        colOrder[colId].forEach(key => {
+          // search document-wide so a card can be relocated to a different column on load
+          const card = document.querySelector('.card[data-card-key="' + key + '"]');
+          if (card) col.appendChild(card);
+        });
+      });
+      // Keep the custom-cards container pinned to the bottom of its column
+      const ccc = document.getElementById('customCardsContainer');
+      if (ccc && ccc.parentElement) ccc.parentElement.appendChild(ccc);
+      document.querySelectorAll('.card[data-card-key]').forEach(card => {
+        const key = card.getAttribute('data-card-key');
+        card.style.display = hidden.includes(key) ? 'none' : '';
+        card.style.order = ''; // clear any stale flex order from older versions
+        // ensure a hide button exists
+        if (!card.querySelector('.card-hide-btn')) {
+          const btn = document.createElement('button');
+          btn.className = 'card-hide-btn'; btn.textContent = '✕';
+          btn.addEventListener('click', (e) => { e.stopPropagation(); hideCard(key); });
+          card.appendChild(btn);
+        }
+      });
+      renderCardTray();
+    }
+    function hideCard(key) { const l = loadCardLayout(); l.hidden = [...new Set([...(l.hidden||[]), key])]; saveCardLayout(l); applyCardLayout(); }
+    function showCard(key) { const l = loadCardLayout(); l.hidden = (l.hidden||[]).filter(k => k !== key); saveCardLayout(l); applyCardLayout(); }
+    function renderCardTray() {
+      const tray = document.getElementById('cardTray'); if (!tray) return;
+      const hidden = (loadCardLayout().hidden) || [];
+      tray.innerHTML = hidden.map(k => `<button data-show="${k}">+ ${k}</button>`).join('') + `<button id="trayAddCard">+ New card</button><button id="trayReset" title="Restore default card positions">↺ Reset layout</button>`;
+      tray.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => showCard(b.getAttribute('data-show'))));
+      document.getElementById('trayAddCard')?.addEventListener('click', () => openAddCardModal());
+      document.getElementById('trayReset')?.addEventListener('click', () => { localStorage.removeItem(CARD_LAYOUT_KEY); location.reload(); });
+    }
+
+    // drag reorder for built-in cards — physically moves DOM nodes so it works
+    // within a column AND across the three columns
+    let dragEl = null;
+    function persistColOrder() {
+      const l = loadCardLayout();
+      const colOrder = {};
+      document.querySelectorAll('.col[id]').forEach(col => {
+        colOrder[col.id] = [...col.querySelectorAll(':scope > .card[data-card-key]')].map(c => c.getAttribute('data-card-key'));
+      });
+      l.colOrder = colOrder; saveCardLayout(l);
+    }
+    function wireCardDrag() {
+      document.querySelectorAll('.col[id] > .card[data-card-key]').forEach(card => {
+        card.setAttribute('draggable', 'false');
+        card.addEventListener('dragstart', e => { dragEl = card; card.classList.add('dragging'); if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'; });
+        card.addEventListener('dragend', e => { card.classList.remove('dragging'); dragEl = null; document.querySelectorAll('.drag-over').forEach(c=>c.classList.remove('drag-over')); });
+        card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
+        card.addEventListener('dragleave', e => card.classList.remove('drag-over'));
+        card.addEventListener('drop', e => {
+          e.preventDefault(); card.classList.remove('drag-over');
+          if (!dragEl || dragEl === card) return;
+          const rect = card.getBoundingClientRect();
+          const after = (e.clientY - rect.top) > rect.height / 2;
+          card.parentNode.insertBefore(dragEl, after ? card.nextSibling : card);
+          persistColOrder();
+        });
+      });
+    }
+    function setCustomizeMode(on) {
+      document.body.classList.toggle('customize-mode', on);
+      document.querySelectorAll('.col[id] > .card[data-card-key]').forEach(c => c.setAttribute('draggable', on ? 'true' : 'false'));
+    }
+    document.getElementById('customizeBtn')?.addEventListener('click', () => {
+      setCustomizeMode(!document.body.classList.contains('customize-mode'));
+    });
+
+    // Add Card modal
+    function openAddCardModal(){ document.getElementById('addCardModal').classList.add('open'); }
+    function closeAddCardModal(){ document.getElementById('addCardModal').classList.remove('open'); }
+    document.getElementById('addCardCloseBtn')?.addEventListener('click', closeAddCardModal);
+    document.getElementById('ccSubmitBtn')?.addEventListener('click', async () => {
+      const title = document.getElementById('ccTitle').value.trim(); if (!title) return;
+      await api('/api/cards', { method:'POST', body: JSON.stringify({
+        title, icon: document.getElementById('ccIcon').value.trim() || '📊',
+        unit: document.getElementById('ccUnit').value.trim(),
+        target_value: Number(document.getElementById('ccTarget').value) || 1,
+        viz_mode: document.getElementById('ccViz').value,
+        frequency: document.getElementById('ccFreq').value,
+      })});
+      ['ccTitle','ccIcon','ccUnit','ccTarget'].forEach(id=>document.getElementById(id).value='');
+      closeAddCardModal(); await renderCustomCards();
+    });
+
+    // Render custom cards
+    async function renderCustomCards() {
+      const container = document.getElementById('customCardsContainer'); if (!container) return;
+      let cards = [];
+      try { cards = await api('/api/cards'); } catch { return; }
+      container.innerHTML = '';
+      for (const c of cards) {
+        const pct = c.target_value ? Math.min(100, Math.round((c.current_value / c.target_value) * 100)) : 0;
+        const el = document.createElement('div');
+        el.className = 'card'; el.setAttribute('data-card-key', 'custom-' + c.id);
+        el.style.position = 'relative';
+        let vizHtml = '';
+        if (c.viz_mode === 'ring') {
+          const uid = 'ccRing' + c.id; const C = 327;
+          vizHtml = `<div style="display:flex;justify-content:center;margin:8px 0;"><svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--s3)" stroke-width="11"/><circle id="${uid}" cx="60" cy="60" r="52" fill="none" stroke="var(--green)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 60 60)"/><text x="60" y="65" text-anchor="middle" fill="var(--t1)" font-size="18" font-weight="700">${c.current_value}</text></svg></div>`;
+        } else {
+          vizHtml = `<div class="cbar-row" id="ccBars${c.id}"></div>`;
+        }
+        el.innerHTML = `<button class="card-hide-btn" data-hide="custom-${c.id}">✕</button>
+          <div class="lbl">${c.icon || ''} ${c.title}</div>
+          ${vizHtml}
+          <div style="font-size:11px;color:var(--t3);text-align:right;">${c.current_value} / ${c.target_value} ${c.unit || ''}</div>
+          <div class="custom-log-row"><input type="number" placeholder="log ${c.unit||'value'}" step="any" id="ccInput${c.id}"><button data-log="${c.id}">↑</button></div>`;
+        container.appendChild(el);
+        if (c.viz_mode === 'ring') setTimeout(()=>{ const r=document.getElementById('ccRing'+c.id); if(r){ const C=327; r.style.transition='stroke-dashoffset 1s'; r.setAttribute('stroke-dashoffset', Math.round(C*(1-pct/100))); } }, 50);
+        if (c.viz_mode === 'bar' || c.viz_mode === 'line') {
+          try {
+            const { series } = await api('/api/cards/'+c.id+'/series?n=7');
+            const max = Math.max(c.target_value, ...series.map(s=>s.value), 1);
+            document.getElementById('ccBars'+c.id).innerHTML = series.map(s=>`<div class="cbar-col"><div class="cbar-track"><div class="cbar-fill" style="height:${Math.round((s.value/max)*100)}%"></div></div><div class="cbar-lbl">${s.period_key.slice(5)}</div></div>`).join('');
+          } catch {}
+        }
+      }
+      // wire hide + log buttons
+      container.querySelectorAll('[data-hide]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); hideCard(b.getAttribute('data-hide')); }));
+      container.querySelectorAll('[data-log]').forEach(b => b.addEventListener('click', async () => {
+        const id = b.getAttribute('data-log'); const inp = document.getElementById('ccInput'+id);
+        const v = Number(inp.value); if (isNaN(v)) return;
+        await api('/api/cards/'+id+'/log', { method:'POST', body: JSON.stringify({ value: v }) });
+        inp.value=''; await renderCustomCards();
+      }));
+      applyCardLayout();
+    }
+
+    // Click-to-edit calorie & protein goals
+    function wireGoalEditing() {
+      const editors = [
+        { el: 'calGoal', key: 'calorie_goal', label: 'calorie goal (kcal)' },
+        { el: 'proGoal', key: 'protein_goal', label: 'protein goal (g)' },
+      ];
+      editors.forEach(({ el, key, label }) => {
+        const node = document.getElementById(el);
+        if (!node) return;
+        node.style.cursor = 'pointer';
+        node.title = 'Click to change ' + label;
+        node.addEventListener('click', async () => {
+          let current = '';
+          try { const g = await api('/api/goals'); current = g[key] || ''; } catch (e) {}
+          const next = prompt('Set ' + label + ':', current);
+          if (next === null) return;
+          const val = parseInt(next);
+          if (isNaN(val) || val <= 0) return;
+          try { await api('/api/goals/' + key, { method: 'PUT', body: JSON.stringify({ value: val }) }); refreshRings(); } catch (e) {}
+        });
+      });
+    }
+
+    // init
+    setTimeout(() => { applyCardLayout(); wireCardDrag(); renderCustomCards(); wireGoalEditing(); }, 300);
   </script>
 
   <!-- Portrait bottom tab bar -->

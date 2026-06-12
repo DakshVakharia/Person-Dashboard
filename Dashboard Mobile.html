@@ -200,6 +200,21 @@
       padding: 14px 15px;
       margin-bottom: 10px;
     }
+    .card.dragging { opacity: 0.4; }
+    body.customize-mode .card { position: relative; }
+    .card-hide-btn { display: none; position: absolute; top: 6px; right: 8px; z-index: 5; background: var(--s3); color: var(--t1); border: 1px solid var(--bd); border-radius: 6px; width: 24px; height: 24px; cursor: pointer; font-size: 14px; line-height: 1; }
+    body.customize-mode .card-hide-btn { display: flex; align-items: center; justify-content: center; }
+    #cardTray { display: none; }
+    body.customize-mode #cardTray { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; }
+    #cardTray button { background: var(--s2); border: 1px solid var(--bd); border-radius: 8px; padding: 6px 11px; color: var(--t2); font-size: 13px; }
+    .custom-log-row { display: flex; gap: 6px; margin-top: 8px; }
+    .custom-log-row input { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--bd); background: var(--s2); color: var(--t1); font-size: 14px; outline: none; }
+    .custom-log-row button { padding: 8px 14px; border-radius: 8px; border: none; background: var(--green); color: #09090B; font-weight: 700; }
+    .cbar-row { display: flex; align-items: flex-end; gap: 4px; height: 70px; margin-top: 8px; }
+    .cbar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .cbar-track { width: 100%; height: 60px; background: var(--s3); border-radius: 4px; display: flex; align-items: flex-end; overflow: hidden; }
+    .cbar-fill { width: 100%; background: var(--green); border-radius: 4px 4px 0 0; transition: height 0.6s; }
+    .cbar-lbl { font-size: 8px; color: var(--t3); }
     .lbl {
       font-size: 9.5px; font-weight: 700; letter-spacing: 0.09em;
       text-transform: uppercase; color: var(--t3); margin-bottom: 12px;
@@ -470,7 +485,10 @@
       <div class="greet-date" id="dateText">Monday, 9 June 2026</div>
     </div>
     <div class="hdr-clock" id="clockDisplay">07:42</div>
-    <button class="theme-btn" id="themeBtn">☀</button>
+    <div style="display:flex;gap:6px;">
+      <button class="theme-btn" id="themeBtn">☀</button>
+      <button id="customizeBtn" title="Customize" style="background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:6px;">⚙</button>
+    </div>
   </div>
 
   <!-- Rings (always visible) -->
@@ -482,6 +500,9 @@
         <circle cx="70" cy="70" r="32" stroke="var(--s3)" stroke-width="9"/>
         <circle id="mRingCalories" cx="70" cy="70" r="62"
           stroke="var(--orange)" stroke-width="9"
+          stroke-dasharray="390" stroke-dashoffset="390" stroke-linecap="round"/>
+        <circle id="mRingCaloriesOver" cx="70" cy="70" r="62"
+          stroke="#FF4444" stroke-width="9"
           stroke-dasharray="390" stroke-dashoffset="390" stroke-linecap="round"/>
         <circle id="mRingProtein" cx="70" cy="70" r="47"
           stroke="var(--blue)" stroke-width="9"
@@ -531,7 +552,7 @@
 
     <!-- Muscles -->
     <div class="tab-panel active" id="panel-muscles">
-      <div class="card">
+      <div class="card" data-card-key="muscles">
         <div class="lbl">Muscles Hit · This Week</div>
         <div class="mg-grid">
           <div class="mg-chip" data-muscle="Chest">
@@ -585,14 +606,14 @@
 
     <!-- Habits + Goals -->
     <div class="tab-panel" id="panel-habits">
-      <div class="card">
+      <div class="card" data-card-key="daily-goals">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div class="lbl" style="margin-bottom:0;">Daily Goals</div>
           <button id="mDgAddBtn" style="width:24px;height:24px;border-radius:7px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
         </div>
         <div id="dgListMobile"></div>
       </div>
-      <div class="card">
+      <div class="card" data-card-key="habits">
         <div class="lbl">Habits · This Week</div>
         <div class="hab-hdr">
           <div class="hab-name-h"></div>
@@ -609,7 +630,7 @@
 
     <!-- Run -->
     <div class="tab-panel" id="panel-run">
-      <div class="card">
+      <div class="card" data-card-key="run">
         <div class="lbl">This Week</div>
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:14px;">
           <span id="mRunCount" style="font-family:'DM Mono',monospace;font-size:38px;font-weight:500;letter-spacing:-2px;color:var(--t1);">0</span>
@@ -625,7 +646,7 @@
           <div class="run-col"><div class="run-track today-t"><div class="run-bar" style="height:0%"></div></div><div class="run-dl today-dl">S</div></div>
         </div>
       </div>
-      <div class="card">
+      <div class="card" data-card-key="log-run">
         <div class="lbl">Log Today's Run</div>
         <div class="run-fields">
           <div class="run-field"><label>Distance <span class="run-unit">km</span></label><input type="number" id="mRunDist" placeholder="5.0" step="0.1" min="0"></div>
@@ -653,7 +674,7 @@
 
     <!-- Calendar -->
     <div class="tab-panel" id="panel-calendar">
-      <div class="card">
+      <div class="card" data-card-key="calendar">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
           <button class="cal-nav-btn" id="dayPrev" style="width:32px;height:32px;font-size:16px;">‹</button>
           <div style="text-align:center;">
@@ -678,7 +699,7 @@
 
     <!-- Meals -->
     <div class="tab-panel" id="panel-meals">
-      <div class="card">
+      <div class="card" data-card-key="meals">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div class="lbl" style="margin-bottom:0;">Today's Meals</div>
           <div style="display:flex;align-items:center;gap:8px;">
@@ -690,6 +711,8 @@
           <div style="color:var(--t3);font-size:12px;padding:6px 0;text-align:center;">No meals logged today</div>
         </div>
       </div>
+      <div id="cardTray"></div>
+      <div id="customCardsContainer" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;"></div>
     </div>
 
   </div><!-- /tab-content -->
@@ -778,6 +801,23 @@
     </div>
   </div>
 
+  <!-- Add Custom Card (bottom sheet) -->
+  <div class="modal-backdrop" id="addCardModal">
+    <div class="modal-sheet">
+      <div class="modal-hdr">
+        <span class="modal-ttl">Add Custom Card</span>
+        <button class="modal-x" id="ccCloseBtn">&times;</button>
+      </div>
+      <div class="mf"><label>Title</label><input type="text" id="ccTitle" placeholder="Title e.g. Water" maxlength="40"></div>
+      <div class="mf"><label>Icon (emoji)</label><input type="text" id="ccIcon" placeholder="Icon 💧" maxlength="4"></div>
+      <div class="mf"><label>Unit</label><input type="text" id="ccUnit" placeholder="Unit e.g. L" maxlength="10"></div>
+      <div class="mf"><label>Target Value</label><input type="number" id="ccTarget" placeholder="Target" step="any"></div>
+      <div class="mf"><label>Visualization</label><select id="ccViz" style="background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; padding: 11px 12px; color: var(--t1); width: 100%; outline: none; font-family: 'Space Grotesk', sans-serif; font-size: 14px;"><option value="ring">Ring</option><option value="bar">Bar graph</option><option value="line">Line graph</option></select></div>
+      <div class="mf"><label>Frequency</label><select id="ccFreq" style="background: var(--s2); border: 1px solid var(--bd); border-radius: 10px; padding: 11px 12px; color: var(--t1); width: 100%; outline: none; font-family: 'Space Grotesk', sans-serif; font-size: 14px;"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
+      <button class="m-submit" id="ccSubmitBtn">Add Card</button>
+    </div>
+  </div>
+
   <script>
     // ── API ──
     async function api(path, opts = {}) {
@@ -832,17 +872,21 @@
           api('/api/rings/today'), api('/api/meals?date='+todayStr()),
           api('/api/goals'),       api('/api/goal-tracker'),
         ]);
-        const cg = parseInt(settings.calorie_goal||'2200'), pg = rings.protein_goal||parseInt(settings.protein_goal||'130');
+        const cg = parseInt(settings.calorie_goal||'1900'), pg = rings.protein_goal||parseInt(settings.protein_goal||'130');
         const cal = meals.reduce((s,m)=>s+(m.calories||0),0), pro = rings.protein_intake||0;
         const daily = goals.filter(g=>g.period==='daily'), done = daily.filter(g=>g.completed).length, total = daily.length;
-        const cp = cg ? Math.min(100,Math.round(cal/cg*100)) : 0;
+        const cpRaw = cg ? Math.round(cal/cg*100) : 0;
+        const cp = Math.min(100, cpRaw);
+        const cOver = cpRaw > 100 ? Math.min(100, cpRaw - 100) : 0;
         const pp = pg ? Math.min(100,Math.round(pro/pg*100)) : 0;
         const tp = total ? Math.round(done/total*100) : 0;
-        setRing('mRingCalories',390,cp); setRing('mRingProtein',295,pp); setRing('mRingTasks',201,tp);
+        setRing('mRingCalories',390,cp); setRing('mRingCaloriesOver',390,cOver); setRing('mRingProtein',295,pp); setRing('mRingTasks',201,tp);
+        document.getElementById('mRingCaloriesOver').style.opacity = cOver > 0 ? '1' : '0';
         document.getElementById('mCalVal').textContent  = Math.round(cal)+' / '+cg;
         document.getElementById('mProVal').textContent  = Math.round(pro)+' / '+pg+'g';
         document.getElementById('mTaskVal').textContent = done+' / '+total;
         document.getElementById('mCalFill').style.width  = cp+'%';
+        document.getElementById('mCalFill').style.background = cOver > 0 ? '#FF4444' : 'var(--orange)';
         document.getElementById('mProFill').style.width  = pp+'%';
         document.getElementById('mTaskFill').style.width = tp+'%';
         document.getElementById('mScore').textContent = (Math.round(((cp+pp+tp)/3)/10*10)/10).toFixed(1);
@@ -1255,6 +1299,72 @@
       } catch(e){ setTimeout(connectWS, 3000); }
     }
 
+    // ===== Customizable cards (mobile) =====
+    const CARD_LAYOUT_KEY = 'dash-card-layout-mobile';
+    function loadCardLayout(){ try { return JSON.parse(localStorage.getItem(CARD_LAYOUT_KEY)) || {}; } catch { return {}; } }
+    function saveCardLayout(l){ localStorage.setItem(CARD_LAYOUT_KEY, JSON.stringify(l)); }
+    function applyCardLayout(){
+      const hidden = (loadCardLayout().hidden) || [];
+      document.querySelectorAll('.card[data-card-key]').forEach(card => {
+        const key = card.getAttribute('data-card-key');
+        card.style.display = hidden.includes(key) ? 'none' : '';
+        if (!card.querySelector('.card-hide-btn')) {
+          const btn = document.createElement('button');
+          btn.className = 'card-hide-btn'; btn.textContent = '✕';
+          btn.addEventListener('click', e => { e.stopPropagation(); hideCard(key); });
+          card.appendChild(btn);
+        }
+      });
+      renderCardTray();
+    }
+    function hideCard(key){ const l=loadCardLayout(); l.hidden=[...new Set([...(l.hidden||[]),key])]; saveCardLayout(l); applyCardLayout(); }
+    function showCard(key){ const l=loadCardLayout(); l.hidden=(l.hidden||[]).filter(k=>k!==key); saveCardLayout(l); applyCardLayout(); }
+    function renderCardTray(){
+      const tray=document.getElementById('cardTray'); if(!tray) return;
+      const hidden=(loadCardLayout().hidden)||[];
+      tray.innerHTML = hidden.map(k=>`<button data-show="${k}">+ ${k}</button>`).join('') + `<button id="trayAddCard">+ New card</button>`;
+      tray.querySelectorAll('[data-show]').forEach(b=>b.addEventListener('click',()=>showCard(b.getAttribute('data-show'))));
+      document.getElementById('trayAddCard')?.addEventListener('click',openAddCardModal);
+    }
+    document.getElementById('customizeBtn')?.addEventListener('click',()=>document.body.classList.toggle('customize-mode'));
+
+    function openAddCardModal(){ document.getElementById('addCardModal')?.classList.add('open'); }
+    function closeAddCardModal(){ document.getElementById('addCardModal')?.classList.remove('open'); }
+    document.getElementById('ccCloseBtn')?.addEventListener('click',closeAddCardModal);
+    document.getElementById('ccSubmitBtn')?.addEventListener('click', async () => {
+      const title=document.getElementById('ccTitle').value.trim(); if(!title) return;
+      await api('/api/cards',{method:'POST',body:JSON.stringify({
+        title, icon:document.getElementById('ccIcon').value.trim()||'📊',
+        unit:document.getElementById('ccUnit').value.trim(),
+        target_value:Number(document.getElementById('ccTarget').value)||1,
+        viz_mode:document.getElementById('ccViz').value,
+        frequency:document.getElementById('ccFreq').value })});
+      ['ccTitle','ccIcon','ccUnit','ccTarget'].forEach(id=>document.getElementById(id).value='');
+      closeAddCardModal(); await renderCustomCards();
+    });
+    async function renderCustomCards(){
+      const container=document.getElementById('customCardsContainer'); if(!container) return;
+      let cards=[]; try { cards=await api('/api/cards'); } catch { return; }
+      container.innerHTML='';
+      for(const c of cards){
+        const pct=c.target_value?Math.min(100,Math.round((c.current_value/c.target_value)*100)):0;
+        const el=document.createElement('div'); el.className='card'; el.setAttribute('data-card-key','custom-'+c.id); el.style.position='relative';
+        let viz='';
+        if(c.viz_mode==='ring'){ const C=327; viz=`<div style="display:flex;justify-content:center;margin:8px 0;"><svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--s3)" stroke-width="11"/><circle id="ccRing${c.id}" cx="60" cy="60" r="52" fill="none" stroke="var(--green)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 60 60)"/><text x="60" y="65" text-anchor="middle" fill="var(--t1)" font-size="18" font-weight="700">${c.current_value}</text></svg></div>`; }
+        else { viz=`<div class="cbar-row" id="ccBars${c.id}"></div>`; }
+        el.innerHTML=`<button class="card-hide-btn" data-hide="custom-${c.id}">✕</button>
+          <div class="lbl">${c.icon||''} ${c.title}</div>${viz}
+          <div style="font-size:11px;color:var(--t3);text-align:right;">${c.current_value} / ${c.target_value} ${c.unit||''}</div>
+          <div class="custom-log-row"><input type="number" placeholder="log ${c.unit||'value'}" step="any" id="ccInput${c.id}"><button data-log="${c.id}">↑</button></div>`;
+        container.appendChild(el);
+        if(c.viz_mode==='ring') setTimeout(()=>{const r=document.getElementById('ccRing'+c.id); if(r){const C=327; r.style.transition='stroke-dashoffset 1s'; r.setAttribute('stroke-dashoffset',Math.round(C*(1-pct/100)));}},50);
+        if(c.viz_mode==='bar'||c.viz_mode==='line'){ try { const {series}=await api('/api/cards/'+c.id+'/series?n=7'); const max=Math.max(c.target_value,...series.map(s=>s.value),1); document.getElementById('ccBars'+c.id).innerHTML=series.map(s=>`<div class="cbar-col"><div class="cbar-track"><div class="cbar-fill" style="height:${Math.round((s.value/max)*100)}%"></div></div><div class="cbar-lbl">${s.period_key.slice(5)}</div></div>`).join(''); } catch {} }
+      }
+      container.querySelectorAll('[data-hide]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();hideCard(b.getAttribute('data-hide'));}));
+      container.querySelectorAll('[data-log]').forEach(b=>b.addEventListener('click',async()=>{const id=b.getAttribute('data-log');const inp=document.getElementById('ccInput'+id);const v=Number(inp.value);if(isNaN(v))return;await api('/api/cards/'+id+'/log',{method:'POST',body:JSON.stringify({value:v})});inp.value='';await renderCustomCards();}));
+      applyCardLayout();
+    }
+
     // ── Init ──
     refreshRings();
     refreshMuscles();
@@ -1262,6 +1372,28 @@
     refreshDailyGoals();
     refreshRun();
     connectWS();
+    // Click-to-edit calorie & protein goals (tap the value display)
+    function wireGoalEditing() {
+      const editors = [
+        { el: 'mCalVal', key: 'calorie_goal', label: 'calorie goal (kcal)' },
+        { el: 'mProVal', key: 'protein_goal', label: 'protein goal (g)' },
+      ];
+      editors.forEach(({ el, key, label }) => {
+        const node = document.getElementById(el);
+        if (!node) return;
+        node.style.cursor = 'pointer';
+        node.addEventListener('click', async () => {
+          let current = '';
+          try { const g = await api('/api/goals'); current = g[key] || ''; } catch (e) {}
+          const next = prompt('Set ' + label + ':', current);
+          if (next === null) return;
+          const val = parseInt(next);
+          if (isNaN(val) || val <= 0) return;
+          try { await api('/api/goals/' + key, { method: 'PUT', body: JSON.stringify({ value: val }) }); refreshRings(); } catch (e) {}
+        });
+      });
+    }
+    setTimeout(()=>{ applyCardLayout(); renderCustomCards(); wireGoalEditing(); }, 300);
   </script>
 </body>
 </html>

@@ -7,7 +7,7 @@ import { logActivity } from '../services/activityLog.js';
 const router = Router();
 
 router.get('/today', requireAuth, (req, res) => {
-  const rings = getOrCreateRings(todayStr());
+  const rings = getOrCreateRings(req.query.date || todayStr());
   const goal = db.prepare("SELECT value FROM goals WHERE key = 'protein_goal'").get();
   res.json({ ...rings, protein_goal: parseInt(goal?.value || '130') });
 });

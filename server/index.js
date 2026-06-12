@@ -32,6 +32,7 @@ import runsRoutes from './routes/runs.js';
 import backupRoutes from './routes/backup.js';
 import chatRoutes from './routes/chat.js';
 import studyRoutes from './routes/study.js';
+import cardsRoutes from './routes/cards.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -116,6 +117,7 @@ app.use('/api/backup', backupRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/workouts', workoutsRoutes);
 app.use('/api/study', studyRoutes);
+app.use('/api/cards', cardsRoutes);
 
 // Serve the new static dashboard front-end (Dashboard.html) — same-origin so
 // fetch()/WebSocket calls share the session cookie. Takes priority over the

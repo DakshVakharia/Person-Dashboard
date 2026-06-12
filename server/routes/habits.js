@@ -1,10 +1,23 @@
 import { Router } from 'express';
-import { db, todayStr } from '../db.js';
+import { db, todayStr, localDateStr } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { appEvents } from '../events.js';
 import { logActivity } from '../services/activityLog.js';
 
 const router = Router();
+
+// Counts consecutive completed days ending today, or ending yesterday if today isn't logged yet
+function computeStreak(dates, today) {
+  let streak = 0;
+  const offset = dates[0] === localDateStr(today) ? 0 : 1;
+  for (let i = 0; i < dates.length; i++) {
+    const expected = new Date(today);
+    expected.setDate(today.getDate() - i - offset);
+    if (dates[i] === localDateStr(expected)) streak++;
+    else break;
+  }
+  return streak;
+}
 
 router.get('/', requireAuth, (req, res) => {
   const today = req.query.date || todayStr();
@@ -13,7 +26,7 @@ router.get('/', requireAuth, (req, res) => {
     FROM habits h
     LEFT JOIN habit_logs hl ON hl.habit_id = h.id AND hl.date = ?
     WHERE h.is_active = 1
-    ORDER BY h.id ASC
+    ORDER BY h.sort_order ASC, h.id ASC
   `).all(today);
   res.json(habits);
 });
@@ -45,22 +58,14 @@ router.get('/:id/streak', requireAuth, (req, res) => {
     ORDER BY date DESC
   `).all(req.params.id);
 
-  let streak = 0;
-  const today = new Date();
-  for (let i = 0; i < logs.length; i++) {
-    const expected = new Date(today);
-    expected.setDate(today.getDate() - i);
-    const expectedStr = expected.toISOString().split('T')[0];
-    if (logs[i]?.date === expectedStr) streak++;
-    else break;
-  }
+  const streak = computeStreak(logs.map(l => l.date), new Date());
 
   res.json({ streak });
 });
 
 // Per-habit completion grid for the current week (Mon..Sun) + streaks — for the Habits modal
 router.get('/week', requireAuth, (req, res) => {
-  const habits = db.prepare('SELECT * FROM habits WHERE is_active = 1 ORDER BY id ASC').all();
+  const habits = db.prepare('SELECT * FROM habits WHERE is_active = 1 ORDER BY sort_order ASC, id ASC').all();
   const today = new Date();
   const day = today.getDay() || 7;
   const monday = new Date(today);
@@ -71,7 +76,7 @@ router.get('/week', requireAuth, (req, res) => {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    dates.push(d.toISOString().split('T')[0]);
+    dates.push(localDateStr(d));
   }
 
   const result = habits.map(h => {
@@ -80,13 +85,7 @@ router.get('/week', requireAuth, (req, res) => {
     const days = dates.map(d => byDate[d] || false);
 
     const streakLogs = db.prepare('SELECT date FROM habit_logs WHERE habit_id = ? AND completed = 1 ORDER BY date DESC').all(h.id);
-    let streak = 0;
-    for (let i = 0; i < streakLogs.length; i++) {
-      const expected = new Date(today);
-      expected.setDate(today.getDate() - i);
-      if (streakLogs[i]?.date === expected.toISOString().split('T')[0]) streak++;
-      else break;
-    }
+    const streak = computeStreak(streakLogs.map(l => l.date), today);
 
     return { ...h, days, dates, streak };
   });
@@ -103,14 +102,7 @@ router.get('/streaks', requireAuth, (req, res) => {
       SELECT date FROM habit_logs WHERE habit_id = ? AND completed = 1 ORDER BY date DESC
     `).all(h.id);
 
-    let streak = 0;
-    for (let i = 0; i < logs.length; i++) {
-      const expected = new Date(today);
-      expected.setDate(today.getDate() - i);
-      const expectedStr = expected.toISOString().split('T')[0];
-      if (logs[i]?.date === expectedStr) streak++;
-      else break;
-    }
+    const streak = computeStreak(logs.map(l => l.date), today);
 
     return { ...h, streak };
   });
