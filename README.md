@@ -97,7 +97,9 @@ Open `http://localhost:3001` in your browser.
 Personal-use project. Next goal- multi-user support. Currently Runs on a home server behind a Cloudflare Tunnel and is accessible only from my own devices.
 
 
-
+### The Dashboard
 ![Mobile Dashboard](images/dashboard_mobile.png)
+
+### Edit mode
 ![Desktop Dashboard](images/dashboard_desktop.png)
 ---
