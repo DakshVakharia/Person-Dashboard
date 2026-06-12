@@ -98,8 +98,9 @@ Personal-use project. Next goal- multi-user support. Currently Runs on a home se
 
 
 ### The Dashboard
-![Mobile Dashboard](images/dashboard_mobile.png)
+![Desktop Dashboard](images/dashboard_desktop.png)
 
 ### Edit mode
-![Desktop Dashboard](images/dashboard_desktop.png)
+![Mobile Dashboard](images/dashboard_mobile.png)
+
 ---
