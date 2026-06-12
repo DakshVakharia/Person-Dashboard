@@ -4,10 +4,7 @@ A self-hosted web app I built to track my daily life in one place — meals, wor
 
 Built as my first real web project using [Claude Code](https://claude.ai/code), with little to no prior web development experience.
 
-![Desktop Dashboard](images/dashboard_desktop.png)
-![Mobile Dashboard](images/dashboard_mobile.png)
 
----
 
 ## What it does
 
@@ -97,4 +94,10 @@ Open `http://localhost:3001` in your browser.
 
 ## Notes
 
-Personal-use project only. No multi-user support, no public signup. Runs on a home server behind a Cloudflare Tunnel and is accessible only from my own devices.
+Personal-use project. Next goal- multi-user support. Currently Runs on a home server behind a Cloudflare Tunnel and is accessible only from my own devices.
+
+
+
+![Mobile Dashboard](images/dashboard_mobile.png)
+![Desktop Dashboard](images/dashboard_desktop.png)
+---
