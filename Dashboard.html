@@ -1672,6 +1672,8 @@
     <button id="weekReportBtn" title="Weekly Report" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--t2);">7d</button>
     <button id="monthReportBtn" title="Monthly Report" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--t2);">30d</button>
     <button id="backupBtn" title="Backup to Google Drive" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);">💾</button>
+    <button id="restoreBtn" title="Restore database from file" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);">📥</button>
+    <input type="file" id="restoreInput" accept=".db" style="display:none">
     <button id="customizeBtn" title="Customize cards" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--t2);">⚙</button>
     <button class="theme-btn" id="themeBtn" title="Toggle theme" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:color-mix(in srgb, var(--s1) 80%, transparent);backdrop-filter:blur(8px);">☀</button>
   </div>
@@ -1744,6 +1746,25 @@
         b.textContent = r.ok ? '✅' : '❌';
       } catch(e) { b.textContent = '❌'; }
       setTimeout(() => { b.textContent = '💾'; b.style.opacity = ''; b.disabled = false; }, 2500);
+    });
+
+    // ── Restore ──
+    const restoreBtn   = document.getElementById('restoreBtn');
+    const restoreInput = document.getElementById('restoreInput');
+    restoreBtn.addEventListener('click', () => restoreInput.click());
+    restoreInput.addEventListener('change', async () => {
+      const file = restoreInput.files[0]; if (!file) return;
+      if (!confirm('Replace the current database with this file? This cannot be undone.')) return;
+      restoreBtn.textContent = '⏳'; restoreBtn.style.opacity = '0.5'; restoreBtn.disabled = true;
+      try {
+        const fd = new FormData(); fd.append('db', file);
+        const r = await fetch('/api/backup/restore', { method: 'POST', credentials: 'include', body: fd });
+        const d = await r.json();
+        if (r.ok) { restoreBtn.textContent = '✅'; setTimeout(() => location.reload(), 1500); }
+        else { restoreBtn.textContent = '❌'; alert(d.error); }
+      } catch(e) { restoreBtn.textContent = '❌'; }
+      setTimeout(() => { restoreBtn.textContent = '📥'; restoreBtn.style.opacity = ''; restoreBtn.disabled = false; }, 2500);
+      restoreInput.value = '';
     });
 
     // ── Reports ──

@@ -488,6 +488,9 @@
     <div style="display:flex;gap:6px;">
       <button class="theme-btn" id="themeBtn">☀</button>
       <button id="customizeBtn" title="Customize" style="background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:6px;">⚙</button>
+      <button id="mBackupBtn" title="Backup to Drive" style="background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:6px;">💾</button>
+      <button id="mRestoreBtn" title="Restore database" style="background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:6px;">📥</button>
+      <input type="file" id="mRestoreInput" accept=".db" style="display:none">
     </div>
   </div>
 
@@ -1307,6 +1310,34 @@
     }
     mAiMealBtn.addEventListener('click', submitMobileAIMeal);
     mAiMealInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitMobileAIMeal(); });
+
+    // ── Backup / Restore ──
+    document.getElementById('mBackupBtn').addEventListener('click', async () => {
+      const b = document.getElementById('mBackupBtn');
+      b.textContent = '⏳'; b.style.opacity = '0.5'; b.disabled = true;
+      try {
+        const r = await api('/api/backup/trigger', { method: 'POST' });
+        b.textContent = '✅';
+      } catch(e) { b.textContent = '❌'; }
+      setTimeout(() => { b.textContent = '💾'; b.style.opacity = ''; b.disabled = false; }, 2500);
+    });
+    const mRestoreBtn   = document.getElementById('mRestoreBtn');
+    const mRestoreInput = document.getElementById('mRestoreInput');
+    mRestoreBtn.addEventListener('click', () => mRestoreInput.click());
+    mRestoreInput.addEventListener('change', async () => {
+      const file = mRestoreInput.files[0]; if (!file) return;
+      if (!confirm('Replace the current database with this file? This cannot be undone.')) return;
+      mRestoreBtn.textContent = '⏳'; mRestoreBtn.style.opacity = '0.5'; mRestoreBtn.disabled = true;
+      try {
+        const fd = new FormData(); fd.append('db', file);
+        const r = await fetch('/api/backup/restore', { method: 'POST', credentials: 'include', body: fd });
+        const d = await r.json();
+        if (r.ok) { mRestoreBtn.textContent = '✅'; setTimeout(() => location.reload(), 1500); }
+        else { mRestoreBtn.textContent = '❌'; alert(d.error); }
+      } catch(e) { mRestoreBtn.textContent = '❌'; }
+      setTimeout(() => { mRestoreBtn.textContent = '📥'; mRestoreBtn.style.opacity = ''; mRestoreBtn.disabled = false; }, 2500);
+      mRestoreInput.value = '';
+    });
 
     // ── Close modals on backdrop tap ──
     ['mAddMealModal','mAddGoalModal'].forEach(id => {
