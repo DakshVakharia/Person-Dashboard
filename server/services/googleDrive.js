@@ -113,7 +113,8 @@ export async function restoreFromDrive() {
     dest.on('error', reject);
   });
 
-  fs.renameSync(tmpPath, DB_PATH);
+  fs.copyFileSync(tmpPath, DB_PATH);
+  fs.unlinkSync(tmpPath);
   console.log(`[Restore] Restored ${latest.name}`);
   return latest.name;
 }
