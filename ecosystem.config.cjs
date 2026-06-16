@@ -5,6 +5,7 @@ module.exports = {
       script: './index.js',
       cwd: __dirname + '/server',
       interpreter: 'node',
+      interpreter_args: '--env-file=.env',
       watch: false,
       autorestart: true,
       max_restarts: 20,
