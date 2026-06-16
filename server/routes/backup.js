@@ -10,7 +10,9 @@ import { db } from '../db.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH = path.join(__dirname, '../data/dashboard.db');
 
-const upload = multer({ dest: path.join(__dirname, '../data/tmp/') });
+const tmpDir = path.join(__dirname, '../data/tmp');
+if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+const upload = multer({ dest: tmpDir });
 
 const router = Router();
 
@@ -26,10 +28,10 @@ router.post('/trigger', requireAuth, async (req, res) => {
 router.post('/restore', requireAuth, upload.single('db'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
-    db.close();
+    // Copy uploaded file over the live DB (no db.close — server restart picks it up)
     fs.copyFileSync(req.file.path, DB_PATH);
     fs.unlinkSync(req.file.path);
-    res.json({ ok: true, message: 'Database restored. Restart the server to apply.' });
+    res.json({ ok: true, message: 'Restored. Restart the server to apply changes.' });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
