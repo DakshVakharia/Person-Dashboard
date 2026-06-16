@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { requireAuth } from '../middleware/auth.js';
-import { backupToDrive } from '../services/googleDrive.js';
+import { backupToDrive, restoreFromDrive } from '../services/googleDrive.js';
 import { db } from '../db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -32,6 +32,15 @@ router.post('/restore', requireAuth, upload.single('db'), (req, res) => {
     fs.copyFileSync(req.file.path, DB_PATH);
     fs.unlinkSync(req.file.path);
     res.json({ ok: true, message: 'Restored. Restart the server to apply changes.' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/restore-from-drive', requireAuth, async (req, res) => {
+  try {
+    const fileName = await restoreFromDrive();
+    res.json({ ok: true, message: `Restored from ${fileName}. Restart server to apply.` });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

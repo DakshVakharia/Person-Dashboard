@@ -73,3 +73,47 @@ export async function backupToDrive() {
     console.log(`[Backup] Pruned old backup: ${f.name}`);
   }
 }
+
+export async function restoreFromDrive() {
+  const user = getUser();
+  if (!user) throw new Error('No user found');
+
+  const auth = getAuthClient(user);
+  const drive = google.drive({ version: 'v3', auth });
+
+  // Find the DashboardBackups folder
+  const folderSearch = await drive.files.list({
+    q: "name='DashboardBackups' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+    fields: 'files(id)',
+  });
+  if (!folderSearch.data.files.length) throw new Error('No DashboardBackups folder found on Drive');
+  const folderId = folderSearch.data.files[0].id;
+
+  // Get the latest backup file
+  const fileList = await drive.files.list({
+    q: `'${folderId}' in parents and name contains 'dashboard-backup' and trashed=false`,
+    orderBy: 'createdTime desc',
+    fields: 'files(id, name)',
+    pageSize: 1,
+  });
+  if (!fileList.data.files.length) throw new Error('No backup files found in DashboardBackups');
+  const latest = fileList.data.files[0];
+  console.log(`[Restore] Downloading ${latest.name} from Drive`);
+
+  const __dirname2 = path.dirname(fileURLToPath(import.meta.url));
+  const DB_PATH = path.join(__dirname2, '../data/dashboard.db');
+  const tmpPath = DB_PATH + '.tmp';
+
+  const dest = fs.createWriteStream(tmpPath);
+  const response = await drive.files.get({ fileId: latest.id, alt: 'media' }, { responseType: 'stream' });
+
+  await new Promise((resolve, reject) => {
+    response.data.pipe(dest);
+    dest.on('finish', resolve);
+    dest.on('error', reject);
+  });
+
+  fs.renameSync(tmpPath, DB_PATH);
+  console.log(`[Restore] Restored ${latest.name}`);
+  return latest.name;
+}
