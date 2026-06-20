@@ -1408,7 +1408,10 @@
         <div class="modal" style="width:480px;">
           <div class="modal-header">
             <span class="modal-title">Habits · This Week</span>
-            <button class="modal-close" id="habCloseBtn">&times;</button>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button class="cal-nav-btn" id="habEditBtn" title="Edit habits" style="font-size:14px;">✏️</button>
+              <button class="modal-close" id="habCloseBtn">&times;</button>
+            </div>
           </div>
           <div class="hab-hdr">
             <div class="hab-name-h"></div>
@@ -1420,6 +1423,18 @@
             <div class="hab-streak-h">streak</div>
           </div>
           <div id="habRows"></div>
+        </div>
+      </div>
+
+      <!-- Edit Habits modal -->
+      <div class="modal-backdrop" id="editHabitsModal">
+        <div class="modal" style="width:380px;">
+          <div class="modal-header">
+            <span class="modal-title">Edit Habits</span>
+            <button class="modal-close" id="editHabitsCloseBtn">&times;</button>
+          </div>
+          <div id="editHabRows" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;"></div>
+          <button id="editHabAddBtn" style="margin-top:10px;padding:8px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);cursor:pointer;font-size:12px;width:100%;">+ Add habit</button>
         </div>
       </div>
 
@@ -2420,7 +2435,7 @@
     addGoalTitle.addEventListener('keydown', e => { if (e.key === 'Enter') submitAddGoal(); });
     addGoalIcon.addEventListener('keydown', e => { if (e.key === 'Enter') submitAddGoal(); });
 
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { habModal.classList.remove('open'); document.getElementById('runModal').classList.remove('open'); goalsModal?.classList.remove('open'); logsModal.classList.remove('open'); document.getElementById('calEditModal')?.classList.remove('open'); document.getElementById('reportModal')?.classList.remove('open'); closeAddGoalModal(); closeAddMealModal(); document.body.style.overflow = ''; } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { habModal.classList.remove('open'); document.getElementById('editHabitsModal')?.classList.remove('open'); document.getElementById('runModal').classList.remove('open'); goalsModal?.classList.remove('open'); logsModal.classList.remove('open'); document.getElementById('calEditModal')?.classList.remove('open'); document.getElementById('reportModal')?.classList.remove('open'); closeAddGoalModal(); closeAddMealModal(); document.body.style.overflow = ''; } });
 
     // ── Habits modal: render grid + wire checkbox toggles ──
     function renderHabitsModal(week) {
@@ -2462,6 +2477,62 @@
         renderHabitsModal(week);
       } catch (e) {}
     }
+
+    // ── Edit Habits modal ──
+    const editHabitsModal = document.getElementById('editHabitsModal');
+    document.getElementById('habEditBtn').addEventListener('click', async () => {
+      editHabitsModal.classList.add('open');
+      await renderEditHabits();
+    });
+    document.getElementById('editHabitsCloseBtn').addEventListener('click', () => editHabitsModal.classList.remove('open'));
+    editHabitsModal.addEventListener('click', e => { if (e.target === editHabitsModal) editHabitsModal.classList.remove('open'); });
+
+    async function renderEditHabits() {
+      const rowsEl = document.getElementById('editHabRows');
+      let habits = [];
+      try { habits = await api('/api/habits?date=' + activeDateStr()); } catch (e) {}
+      rowsEl.innerHTML = habits.map(h => `
+        <div class="edit-hab-row" data-id="${h.id}" style="display:flex;gap:6px;align-items:center;">
+          <input type="text" class="eh-icon" value="${h.icon || ''}" maxlength="4" style="width:38px;padding:7px 6px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:13px;text-align:center;">
+          <input type="text" class="eh-name" value="${h.name.replace(/"/g, '&quot;')}" maxlength="40" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:13px;">
+          <button class="eh-del" style="padding:7px 10px;border-radius:8px;border:none;background:var(--s3);color:var(--t2);cursor:pointer;font-size:13px;">🗑</button>
+        </div>
+      `).join('') || '<div style="color:var(--t3);font-size:12px;text-align:center;padding:12px;">No habits yet</div>';
+    }
+
+    document.getElementById('editHabRows').addEventListener('change', async e => {
+      const row = e.target.closest('.edit-hab-row'); if (!row) return;
+      const id = row.dataset.id;
+      const name = row.querySelector('.eh-name').value.trim();
+      const icon = row.querySelector('.eh-icon').value.trim();
+      if (!name) return;
+      try {
+        await api(`/api/habits/${id}`, { method: 'PUT', body: JSON.stringify({ name, icon }) });
+        refreshHabits();
+      } catch (e) {}
+    });
+
+    document.getElementById('editHabRows').addEventListener('click', async e => {
+      const delBtn = e.target.closest('.eh-del'); if (!delBtn) return;
+      const row = delBtn.closest('.edit-hab-row');
+      const id = row.dataset.id;
+      if (!confirm('Delete this habit?')) return;
+      try {
+        await api(`/api/habits/${id}`, { method: 'DELETE' });
+        row.remove();
+        refreshHabits();
+      } catch (e) {}
+    });
+
+    document.getElementById('editHabAddBtn').addEventListener('click', async () => {
+      const name = prompt('Habit name:'); if (!name) return;
+      const icon = prompt('Icon (emoji, optional):', '✓') || '✓';
+      try {
+        await api('/api/habits', { method: 'POST', body: JSON.stringify({ name, icon }) });
+        await renderEditHabits();
+        refreshHabits();
+      } catch (e) {}
+    });
 
     // ── Run tab switcher ──
     function switchRunTab(tab) {

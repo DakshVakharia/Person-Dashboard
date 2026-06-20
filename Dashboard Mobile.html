@@ -623,7 +623,10 @@
         <div id="dgListMobile"></div>
       </div>
       <div class="card" data-card-key="habits">
-        <div class="lbl">Habits · This Week</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="lbl" style="margin-bottom:0;">Habits · This Week</div>
+          <button id="mHabEditBtn" title="Edit habits" style="background:none;border:none;color:var(--t2);font-size:14px;cursor:pointer;padding:4px;">✏️</button>
+        </div>
         <div class="hab-hdr">
           <div class="hab-name-h"></div>
           <div class="hab-days-h" id="mHabDaysHdr">
@@ -805,6 +808,18 @@
       <div class="mf"><label>Title</label><input type="text" id="mGoalTitle" placeholder="e.g. Drink 2L water" maxlength="60"></div>
       <div class="mf"><label>Icon (emoji, optional)</label><input type="text" id="mGoalIcon" placeholder="🎯" maxlength="4"></div>
       <button class="m-submit" id="mGoalSubmit">Add Goal</button>
+    </div>
+  </div>
+
+  <!-- Edit Habits (bottom sheet) -->
+  <div class="modal-backdrop" id="mEditHabitsModal">
+    <div class="modal-sheet">
+      <div class="modal-hdr">
+        <span class="modal-ttl">Edit Habits</span>
+        <button class="modal-x" id="mEditHabitsClose">&times;</button>
+      </div>
+      <div id="mEditHabRows" style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto;"></div>
+      <button id="mEditHabAddBtn" style="margin-top:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);cursor:pointer;font-size:13px;width:100%;">+ Add habit</button>
     </div>
   </div>
 
@@ -994,6 +1009,51 @@
         });
       } catch(e) {}
     }
+
+    // ── Edit Habits ──
+    const mEditHabitsModal = document.getElementById('mEditHabitsModal');
+    document.getElementById('mHabEditBtn').addEventListener('click', async () => {
+      mEditHabitsModal.classList.add('open');
+      await renderMobileEditHabits();
+    });
+    document.getElementById('mEditHabitsClose').addEventListener('click', () => mEditHabitsModal.classList.remove('open'));
+    mEditHabitsModal.addEventListener('click', e => { if (e.target === mEditHabitsModal) mEditHabitsModal.classList.remove('open'); });
+
+    async function renderMobileEditHabits() {
+      const rowsEl = document.getElementById('mEditHabRows');
+      let habits = [];
+      try { habits = await api('/api/habits'); } catch (e) {}
+      rowsEl.innerHTML = habits.map(h => `
+        <div class="edit-hab-row" data-id="${h.id}" style="display:flex;gap:6px;align-items:center;">
+          <input type="text" class="eh-icon" value="${h.icon || ''}" maxlength="4" style="width:40px;padding:8px 6px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:14px;text-align:center;">
+          <input type="text" class="eh-name" value="${h.name.replace(/"/g, '&quot;')}" maxlength="40" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:14px;">
+          <button class="eh-del" style="padding:8px 10px;border-radius:8px;border:none;background:var(--s3);color:var(--t2);cursor:pointer;font-size:14px;">🗑</button>
+        </div>
+      `).join('') || '<div style="color:var(--t3);font-size:12px;text-align:center;padding:12px;">No habits yet</div>';
+    }
+
+    document.getElementById('mEditHabRows').addEventListener('change', async e => {
+      const row = e.target.closest('.edit-hab-row'); if (!row) return;
+      const id = row.dataset.id;
+      const name = row.querySelector('.eh-name').value.trim();
+      const icon = row.querySelector('.eh-icon').value.trim();
+      if (!name) return;
+      try { await api(`/api/habits/${id}`, { method: 'PUT', body: JSON.stringify({ name, icon }) }); refreshHabits(); } catch (e) {}
+    });
+
+    document.getElementById('mEditHabRows').addEventListener('click', async e => {
+      const delBtn = e.target.closest('.eh-del'); if (!delBtn) return;
+      const row = delBtn.closest('.edit-hab-row');
+      const id = row.dataset.id;
+      if (!confirm('Delete this habit?')) return;
+      try { await api(`/api/habits/${id}`, { method: 'DELETE' }); row.remove(); refreshHabits(); } catch (e) {}
+    });
+
+    document.getElementById('mEditHabAddBtn').addEventListener('click', async () => {
+      const name = prompt('Habit name:'); if (!name) return;
+      const icon = prompt('Icon (emoji, optional):', '✓') || '✓';
+      try { await api('/api/habits', { method: 'POST', body: JSON.stringify({ name, icon }) }); await renderMobileEditHabits(); refreshHabits(); } catch (e) {}
+    });
 
     // ── Daily Goals ──
     async function refreshDailyGoals() {
