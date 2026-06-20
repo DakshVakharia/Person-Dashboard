@@ -53,7 +53,7 @@ const toolDefinitions = [
   },
   {
     name: 'log_meal',
-    description: 'Log a meal with nutritional info. Use vegetarian context when estimating macros.',
+    description: 'Log a meal with nutritional info.',
     parameters: {
       type: 'OBJECT',
       properties: {
@@ -508,9 +508,8 @@ async function executeTool(name, args, user) {
 export async function processChat(userMessage, user, imageBase64 = null) {
   const context = await buildContext(user);
 
-  const systemInstruction = `You are Daksh's personal AI assistant embedded in his smart home dashboard.
+  const systemInstruction = `You are the user's personal AI assistant embedded in their smart home dashboard.
 Be concise, warm, and action-oriented. Always use tools when data needs to be updated.
-User is vegetarian — factor this into all nutritional estimates.
 When food is mentioned, extract macros and call log_meal automatically without asking.
 When times are mentioned for reminders, set them immediately.
 When the user says "I weigh X", log_weight immediately.
@@ -582,7 +581,7 @@ export async function generateMorningGreeting() {
   const context = await buildContext(null);
   const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-1.5-flash' });
   const result = await model.generateContent(
-    `Good morning! Generate a brief, energetic 2-3 sentence morning greeting for Daksh. Include today's key events from this context and one motivational nudge. Keep it warm and personal.\n\n${context}`
+    `Good morning! Generate a brief, energetic 2-3 sentence morning greeting for the user. Include today's key events from this context and one motivational nudge. Keep it warm and personal.\n\n${context}`
   );
   return result.response.text();
 }
@@ -591,7 +590,7 @@ export async function generateEveningSummary() {
   const context = await buildContext(null);
   const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-1.5-flash' });
   const result = await model.generateContent(
-    `Generate a warm, reflective evening summary for Daksh. Summarise today's wins (rings, habits, meals) in 3-4 sentences. Ask him what he wants to focus on tomorrow (his intention). Be encouraging.\n\n${context}`
+    `Generate a warm, reflective evening summary for the user. Summarise today's wins (rings, habits, meals) in 3-4 sentences. Ask what they want to focus on tomorrow (their intention). Be encouraging.\n\n${context}`
   );
   return result.response.text();
 }
@@ -600,7 +599,7 @@ export async function generateWeeklyReport() {
   const context = await buildContext(null);
   const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || 'gemini-1.5-flash' });
   const result = await model.generateContent(
-    `Generate a weekly report for Daksh. Summarise his workouts for the week and any general progress based on the context. Keep it motivating and concise.\n\n${context}`
+    `Generate a weekly report for the user. Summarise their workouts for the week and any general progress based on the context. Keep it motivating and concise.\n\n${context}`
   );
   return result.response.text();
 }

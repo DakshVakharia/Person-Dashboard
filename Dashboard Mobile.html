@@ -1024,13 +1024,51 @@
       let habits = [];
       try { habits = await api('/api/habits'); } catch (e) {}
       rowsEl.innerHTML = habits.map(h => `
-        <div class="edit-hab-row" data-id="${h.id}" style="display:flex;gap:6px;align-items:center;">
+        <div class="edit-hab-row" data-id="${h.id}" style="display:flex;gap:6px;align-items:center;touch-action:none;">
+          <span class="eh-drag" style="cursor:grab;color:var(--t3);font-size:16px;padding:4px;user-select:none;">⠿</span>
           <input type="text" class="eh-icon" value="${h.icon || ''}" maxlength="4" style="width:40px;padding:8px 6px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:14px;text-align:center;">
           <input type="text" class="eh-name" value="${h.name.replace(/"/g, '&quot;')}" maxlength="40" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:14px;">
           <button class="eh-del" style="padding:8px 10px;border-radius:8px;border:none;background:var(--s3);color:var(--t2);cursor:pointer;font-size:14px;">🗑</button>
         </div>
       `).join('') || '<div style="color:var(--t3);font-size:12px;text-align:center;padding:12px;">No habits yet</div>';
     }
+
+    // ── Touch-friendly drag-to-reorder (pointer events work for mouse + touch) ──
+    function wireMobileHabitDragReorder(rowsEl, apiPath) {
+      let dragRow = null, startY = 0, placeholderIdx = 0;
+      rowsEl.addEventListener('pointerdown', e => {
+        const handle = e.target.closest('.eh-drag'); if (!handle) return;
+        dragRow = handle.closest('.edit-hab-row');
+        startY = e.clientY;
+        dragRow.setPointerCapture(e.pointerId);
+        dragRow.style.position = 'relative';
+        dragRow.style.zIndex = '10';
+        dragRow.style.background = 'var(--s3)';
+      });
+      rowsEl.addEventListener('pointermove', e => {
+        if (!dragRow) return;
+        const dy = e.clientY - startY;
+        dragRow.style.transform = `translateY(${dy}px)`;
+        const rows = [...rowsEl.querySelectorAll('.edit-hab-row')].filter(r => r !== dragRow);
+        for (const r of rows) {
+          const rect = r.getBoundingClientRect();
+          if (e.clientY > rect.top && e.clientY < rect.bottom) {
+            const before = e.clientY < rect.top + rect.height / 2;
+            rowsEl.insertBefore(dragRow, before ? r : r.nextSibling);
+            startY = e.clientY; dragRow.style.transform = 'translateY(0)';
+            break;
+          }
+        }
+      });
+      rowsEl.addEventListener('pointerup', async e => {
+        if (!dragRow) return;
+        dragRow.style.position = ''; dragRow.style.zIndex = ''; dragRow.style.background = ''; dragRow.style.transform = '';
+        const finished = dragRow; dragRow = null;
+        const ids = [...rowsEl.querySelectorAll('.edit-hab-row')].map(r => r.dataset.id);
+        try { await api(apiPath, { method: 'PUT', body: JSON.stringify({ ids }) }); refreshHabits(); } catch (e) {}
+      });
+    }
+    wireMobileHabitDragReorder(document.getElementById('mEditHabRows'), '/api/habits/reorder');
 
     document.getElementById('mEditHabRows').addEventListener('change', async e => {
       const row = e.target.closest('.edit-hab-row'); if (!row) return;

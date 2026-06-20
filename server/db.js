@@ -209,23 +209,23 @@ export function initDB() {
     );
   `);
 
-  // Seed default goals
+  // Seed default goals (generic placeholders — adjust to your own targets after first run)
   const defaults = [
-    ['protein_goal', '130'],
-    ['calorie_goal', '1900'],
+    ['protein_goal', '100'],
+    ['calorie_goal', '2000'],
     ['weight_unit', 'kg'],
-    ['study_goal', '240'],  // 4 hours in minutes
+    ['study_goal', '120'],  // 2 hours in minutes
   ];
   const upsertGoal = db.prepare(
     'INSERT OR IGNORE INTO goals (key, value) VALUES (?, ?)'
   );
   defaults.forEach(([k, v]) => upsertGoal.run(k, v));
 
-  // Seed default habits
+  // Seed default habits (generic examples — edit freely from the Habits modal)
   const habitCount = db.prepare('SELECT COUNT(*) as c FROM habits').get();
   if (habitCount.c === 0) {
     const insert = db.prepare('INSERT INTO habits (name, icon) VALUES (?, ?)');
-    [['Gym', '🏋️'], ['Creatine', '💊'], ['Journaling', '📓'], ['Reading', '📚'], ['Meditation', '🧘']].forEach(
+    [['Exercise', '🏋️'], ['Drink Water', '💧'], ['Journaling', '📓'], ['Reading', '📚'], ['Meditation', '🧘']].forEach(
       ([name, icon]) => insert.run(name, icon)
     );
   }
@@ -234,7 +234,7 @@ export function initDB() {
   const habitCols = db.prepare("PRAGMA table_info(habits)").all();
   if (!habitCols.some(c => c.name === 'sort_order')) {
     db.exec('ALTER TABLE habits ADD COLUMN sort_order INTEGER DEFAULT 0');
-    const order = ['Wake up at 6', 'Meditation', 'Morning Serum', 'Gym', 'Creatine', 'Reading', 'Night Serum', 'Sleep at 11:30'];
+    const order = ['Exercise', 'Drink Water', 'Journaling', 'Reading', 'Meditation'];
     const setOrder = db.prepare('UPDATE habits SET sort_order = ? WHERE name = ?');
     order.forEach((name, i) => setOrder.run(i + 1, name));
     // Any habits not in the list above keep sort_order 0 and will sort first by id

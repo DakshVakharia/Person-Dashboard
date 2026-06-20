@@ -2492,13 +2492,39 @@
       let habits = [];
       try { habits = await api('/api/habits?date=' + activeDateStr()); } catch (e) {}
       rowsEl.innerHTML = habits.map(h => `
-        <div class="edit-hab-row" data-id="${h.id}" style="display:flex;gap:6px;align-items:center;">
+        <div class="edit-hab-row" data-id="${h.id}" draggable="true" style="display:flex;gap:6px;align-items:center;">
+          <span class="eh-drag" style="cursor:grab;color:var(--t3);font-size:14px;padding:0 2px;user-select:none;">⠿</span>
           <input type="text" class="eh-icon" value="${h.icon || ''}" maxlength="4" style="width:38px;padding:7px 6px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:13px;text-align:center;">
           <input type="text" class="eh-name" value="${h.name.replace(/"/g, '&quot;')}" maxlength="40" style="flex:1;padding:7px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:13px;">
           <button class="eh-del" style="padding:7px 10px;border-radius:8px;border:none;background:var(--s3);color:var(--t2);cursor:pointer;font-size:13px;">🗑</button>
         </div>
       `).join('') || '<div style="color:var(--t3);font-size:12px;text-align:center;padding:12px;">No habits yet</div>';
     }
+
+    // ── Drag-to-reorder for habit rows ──
+    function wireHabitDragReorder(rowsEl, apiPath) {
+      let dragEl = null;
+      rowsEl.addEventListener('dragstart', e => {
+        dragEl = e.target.closest('.edit-hab-row');
+        if (dragEl) { dragEl.style.opacity = '0.4'; e.dataTransfer.effectAllowed = 'move'; }
+      });
+      rowsEl.addEventListener('dragend', async () => {
+        if (!dragEl) return;
+        dragEl.style.opacity = '';
+        dragEl = null;
+        const ids = [...rowsEl.querySelectorAll('.edit-hab-row')].map(r => r.dataset.id);
+        try { await api(apiPath, { method: 'PUT', body: JSON.stringify({ ids }) }); refreshHabits(); } catch (e) {}
+      });
+      rowsEl.addEventListener('dragover', e => {
+        e.preventDefault();
+        const over = e.target.closest('.edit-hab-row');
+        if (!over || over === dragEl || !dragEl) return;
+        const rect = over.getBoundingClientRect();
+        const before = (e.clientY - rect.top) < rect.height / 2;
+        rowsEl.insertBefore(dragEl, before ? over : over.nextSibling);
+      });
+    }
+    wireHabitDragReorder(document.getElementById('editHabRows'), '/api/habits/reorder');
 
     document.getElementById('editHabRows').addEventListener('change', async e => {
       const row = e.target.closest('.edit-hab-row'); if (!row) return;

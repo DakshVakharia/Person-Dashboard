@@ -110,6 +110,16 @@ router.get('/streaks', requireAuth, (req, res) => {
   res.json(result);
 });
 
+// Accepts an ordered array of habit ids and assigns sort_order = index
+router.put('/reorder', requireAuth, (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids array required' });
+  const update = db.prepare('UPDATE habits SET sort_order = ? WHERE id = ?');
+  const tx = db.transaction(rows => rows.forEach((id, i) => update.run(i + 1, id)));
+  tx(ids);
+  res.json({ ok: true });
+});
+
 router.put('/:id', requireAuth, (req, res) => {
   const { name, description, icon, is_active } = req.body;
   db.prepare('UPDATE habits SET name = COALESCE(?, name), description = COALESCE(?, description), icon = COALESCE(?, icon), is_active = COALESCE(?, is_active) WHERE id = ?')

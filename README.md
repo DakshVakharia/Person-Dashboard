@@ -92,6 +92,37 @@ Open `http://localhost:3001` in your browser.
 
 ---
 
+## Try it out
+
+Want to spin this up for yourself? Here's the fastest path to a working dashboard:
+
+1. **Clone and install**
+   ```bash
+   git clone https://github.com/DakshVakharia/Person-Dashboard.git
+   cd Person-Dashboard/server
+   npm install
+   ```
+
+2. **Set up your `.env`** — copy `.env.example` to `.env` in `server/` and fill in:
+   - `SESSION_SECRET` — any random string
+   - `GROQ_API_KEY` — free at [console.groq.com](https://console.groq.com), powers AI meal logging
+   - `GEMINI_API_KEY` — free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey), powers the chat assistant
+
+   Google Calendar/Drive sync is optional — the dashboard works fine without `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` set, just without calendar features.
+
+3. **Start it**
+   ```bash
+   node --env-file=.env index.js
+   ```
+
+4. **Open `http://localhost:3001`** — you'll land on the desktop view, or `http://localhost:3001/mobile` for the touch-friendly layout. A fresh database is created automatically with a few example habits and goals you can edit or delete from the dashboard's edit modals.
+
+5. **Customize** — tap the ⚙ icon to add your own tracking cards (any value + unit + visualization), the ✏️ icon in the Habits panel to add/rename/delete/reorder habits, and the goals "+" button to set your own daily targets.
+
+No Google account or sign-in is required to try it locally — auto-login handles single-device use out of the box.
+
+---
+
 ## Notes
 
 Personal-use project. Next goal- multi-user support. Currently Runs on a home server behind a Cloudflare Tunnel and is accessible only from my own devices.
