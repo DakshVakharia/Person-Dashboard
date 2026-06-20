@@ -622,6 +622,18 @@
           </div>
         </div>
       </div>
+      <div class="card" data-card-key="weight">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="lbl" style="margin-bottom:0;">Weight</div>
+          <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--t2);" id="mWeightLatest">--</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <input id="mWeightInput" type="number" step="0.1" placeholder="70.5" autocomplete="off"
+            style="flex:1;padding:9px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:14px;outline:none;">
+          <button id="mWeightLogBtn" style="padding:9px 16px;border-radius:9px;border:none;background:var(--green);color:#09090B;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Log</button>
+        </div>
+        <div id="mWeightSpark" style="margin-top:10px;height:32px;"></div>
+      </div>
     </div>
 
     <!-- Habits + Goals -->
@@ -998,6 +1010,46 @@
         try { await api('/api/workouts',{method:'POST',body:JSON.stringify({muscle_group:muscle})}); } catch(e){}
       });
     });
+
+    // ── Weight tracker ──
+    async function refreshWeight() {
+      try {
+        const rows = await api('/api/weight?days=14');
+        const latest = rows[rows.length - 1];
+        document.getElementById('mWeightLatest').textContent = latest ? `${latest.weight} ${latest.unit}` : '--';
+        const spark = document.getElementById('mWeightSpark');
+        if (rows.length >= 2) {
+          const vals = rows.map(r => r.weight);
+          const min = Math.min(...vals), max = Math.max(...vals), range = (max - min) || 1;
+          const w = 100, h = 32;
+          const pts = rows.map((r, i) => {
+            const x = (i / (rows.length - 1)) * w;
+            const y = h - ((r.weight - min) / range) * h;
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+          }).join(' ');
+          spark.innerHTML = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        } else {
+          spark.innerHTML = '<div style="font-size:10px;color:var(--t3);">Log a few entries to see a trend</div>';
+        }
+      } catch(e) {}
+    }
+    document.getElementById('mWeightLogBtn').addEventListener('click', async () => {
+      const input = document.getElementById('mWeightInput');
+      const val = parseFloat(input.value);
+      if (!val) { input.focus(); return; }
+      const btn = document.getElementById('mWeightLogBtn');
+      const orig = btn.textContent;
+      btn.textContent = '…'; btn.disabled = true;
+      try {
+        const settings = await api('/api/goals');
+        await api('/api/weight', { method: 'POST', body: JSON.stringify({ weight: val, unit: settings.weight_unit || 'kg', date: todayStr() }) });
+        input.value = '';
+        btn.textContent = '✅';
+        refreshWeight();
+      } catch(e) { btn.textContent = '❌'; }
+      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1200);
+    });
+    document.getElementById('mWeightInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('mWeightLogBtn').click(); });
 
     // ── Habits ──
     const DL = ['M','T','W','T','F','S','S'];
@@ -1516,6 +1568,7 @@
           if (msg.type === 'workouts_updated') refreshMuscles();
           if (['habits_updated','goal_tracker_updated'].includes(msg.type)) { refreshHabits(); refreshDailyGoals(); }
           if (msg.type === 'runs_updated') refreshRun();
+          if (msg.type === 'weight_updated') refreshWeight();
         };
         ws.onclose = () => setTimeout(connectWS, 3000); ws.onerror = () => ws.close();
       } catch(e){ setTimeout(connectWS, 3000); }
@@ -1611,6 +1664,7 @@
     refreshHabits();
     refreshDailyGoals();
     refreshRun();
+    refreshWeight();
     connectWS();
     // Click-to-edit calorie & protein goals (tap the value display)
     function wireGoalEditing() {

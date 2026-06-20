@@ -1681,6 +1681,20 @@
         </div>
       </div>
 
+      <!-- Weight tracker -->
+      <div class="card" data-card-key="weight" style="--d:0.16s">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="lbl" style="margin-bottom:0;">Weight</div>
+          <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--t2);" id="weightLatest">--</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <input id="weightInput" type="number" step="0.1" placeholder="70.5" autocomplete="off"
+            style="flex:1;padding:8px 10px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-family:'DM Mono',monospace;font-size:13px;outline:none;">
+          <button id="weightLogBtn" style="padding:8px 14px;border-radius:9px;border:none;background:var(--green);color:#09090B;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Log</button>
+        </div>
+        <div id="weightSpark" style="margin-top:10px;height:36px;"></div>
+      </div>
+
     </div>
 
   </div>
@@ -2261,6 +2275,46 @@
     window.deleteStudy = async (id) => {
       try { await api('/api/study/' + id, { method: 'DELETE' }); refreshStudyList(); } catch(e) {}
     };
+
+    // ── Weight tracker ──
+    async function refreshWeight() {
+      try {
+        const rows = await api('/api/weight?days=14');
+        const latest = rows[rows.length - 1];
+        document.getElementById('weightLatest').textContent = latest ? `${latest.weight} ${latest.unit}` : '--';
+        const spark = document.getElementById('weightSpark');
+        if (rows.length >= 2) {
+          const vals = rows.map(r => r.weight);
+          const min = Math.min(...vals), max = Math.max(...vals), range = (max - min) || 1;
+          const w = 100, h = 32;
+          const pts = rows.map((r, i) => {
+            const x = (i / (rows.length - 1)) * w;
+            const y = h - ((r.weight - min) / range) * h;
+            return `${x.toFixed(1)},${y.toFixed(1)}`;
+          }).join(' ');
+          spark.innerHTML = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        } else {
+          spark.innerHTML = '<div style="font-size:10px;color:var(--t3);">Log a few entries to see a trend</div>';
+        }
+      } catch(e) {}
+    }
+    document.getElementById('weightLogBtn').addEventListener('click', async () => {
+      const input = document.getElementById('weightInput');
+      const val = parseFloat(input.value);
+      if (!val) { input.focus(); return; }
+      const btn = document.getElementById('weightLogBtn');
+      const orig = btn.textContent;
+      btn.textContent = '…'; btn.disabled = true;
+      try {
+        const settings = await api('/api/goals');
+        await api('/api/weight', { method: 'POST', body: JSON.stringify({ weight: val, unit: settings.weight_unit || 'kg', date: activeDateStr() }) });
+        input.value = '';
+        btn.textContent = '✅';
+        refreshWeight();
+      } catch(e) { btn.textContent = '❌'; }
+      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1200);
+    });
+    document.getElementById('weightInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('weightLogBtn').click(); });
     async function submitStudy(hoursOverride, minsOverride) {
       const title = document.getElementById('studySubject').value;
       const hours = hoursOverride !== undefined ? hoursOverride : document.getElementById('studyHours').value;
@@ -3023,6 +3077,9 @@
             case 'runs_updated':
               refreshRunWeek();
               break;
+            case 'weight_updated':
+              refreshWeight();
+              break;
             case 'activity_logged':
               if (logsModal.classList.contains('open')) refreshLogs();
               break;
@@ -3041,6 +3098,7 @@
     refreshRunWeek();
     refreshAgenda();
     refreshStudyList();
+    refreshWeight();
 
     // ── Portrait tab switching ──
     (function () {
