@@ -548,7 +548,18 @@
         </div>
         <div class="rl-track"><div class="rl-fill" id="mStudyFill" style="width:0%;background:var(--blue)"></div></div>
       </div>
-      <!-- AI Meal input bar -->
+      <div class="rl-item">
+        <div class="rl-top">
+          <div class="rl-label"><div class="rl-dot" style="background:#FF7A45"></div>Burnt</div>
+          <div class="rl-val" id="mBurnVal">-- / --</div>
+        </div>
+        <div class="rl-track"><div class="rl-fill" id="mBurnFill" style="width:0%;background:#FF7A45"></div></div>
+      </div>
+      <!-- AI Meal / Calories-Burnt input bar -->
+      <div style="display:flex;gap:4px;margin-bottom:4px;">
+        <button class="ai-mode-btn active" id="mAiModeMeal" data-mode="meal" style="flex:1;padding:5px 8px;border-radius:7px;border:1px solid var(--bd);background:var(--green);color:#09090B;font-size:11px;font-weight:700;cursor:pointer;">🍽 Meal</button>
+        <button class="ai-mode-btn" id="mAiModeBurn" data-mode="burn" style="flex:1;padding:5px 8px;border-radius:7px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);font-size:11px;font-weight:700;cursor:pointer;">🔥 Burnt</button>
+      </div>
       <div class="ai-meal-bar">
         <input id="mAiMealInput" type="text" placeholder="I had 2 eggs and toast…" autocomplete="off" />
         <button id="mAiMealBtn">↑</button>
@@ -906,9 +917,10 @@
     }
     async function refreshRings() {
       try {
-        const [rings, meals, settings, goals, studyWeek] = await Promise.all([
+        const [rings, meals, settings, goals, studyWeek, burnWeek] = await Promise.all([
           api('/api/rings/today'), api('/api/meals?date='+todayStr()),
           api('/api/goals'),       api('/api/goal-tracker'), api('/api/study/week'),
+          api('/api/calories/week'),
         ]);
         const cg = parseInt(settings.calorie_goal||'1900'), pg = rings.protein_goal||parseInt(settings.protein_goal||'130');
         const cal = meals.reduce((s,m)=>s+(m.calories||0),0), pro = rings.protein_intake||0;
@@ -942,6 +954,12 @@
 
         const weekTotal = Object.values(studyWeek.dailyTotals).reduce((a,b)=>a+b,0);
         document.getElementById('mStudySummary').textContent = `Week: ${weekTotal} min`;
+
+        const burnGoal = parseInt(settings.calories_burnt_goal || '300');
+        const burnToday = burnWeek.dailyTotals[todayStr()] || 0;
+        const burnPct = burnGoal ? Math.min(100, Math.round(burnToday / burnGoal * 100)) : 0;
+        document.getElementById('mBurnVal').textContent = Math.round(burnToday) + ' / ' + burnGoal + ' kcal';
+        document.getElementById('mBurnFill').style.width = burnPct + '%';
 
         document.getElementById('mScore').textContent = (Math.round(((cp+pp+tp)/3)/10*10)/10).toFixed(1);
       } catch(e) {}
@@ -998,12 +1016,23 @@
             return `<div class="hc${done?' on':''}" data-id="${h.id}" data-date="${dates[i]}" data-today="${isT}"></div>`;
           }).join('');
           const s = h.streak; const sl = s>0 ? s+'d'+(s>=7?' 🔥':'') : '';
-          return `<div class="hab-row"><div class="hab-name">${h.icon?h.icon+' ':''}${h.name}</div><div class="hab-checks">${checks}</div><div class="hab-streak">${sl}</div></div>`;
+          return `<div class="hab-row" data-name="${h.name.replace(/"/g,'&quot;')}" data-track="${h.track_calories?1:0}"><div class="hab-name">${h.icon?h.icon+' ':''}${h.name}</div><div class="hab-checks">${checks}</div><div class="hab-streak">${sl}</div></div>`;
         }).join('');
         c.querySelectorAll('.hc[data-today="true"]').forEach(hc => {
           hc.addEventListener('click', async () => {
             const was = hc.classList.contains('on'); hc.classList.toggle('on',!was);
-            try { await api(`/api/habits/${hc.dataset.id}/complete`,{method:'PATCH',body:JSON.stringify({completed:!was,date:hc.dataset.date})}); refreshRings(); }
+            try {
+              await api(`/api/habits/${hc.dataset.id}/complete`,{method:'PATCH',body:JSON.stringify({completed:!was,date:hc.dataset.date})});
+              const row = hc.closest('.hab-row');
+              if (!was && row.dataset.track === '1') {
+                const cals = prompt(`Calories burnt for "${row.dataset.name}"?`, '');
+                const n = parseFloat(cals);
+                if (cals && !isNaN(n) && n > 0) {
+                  await api('/api/calories', { method: 'POST', body: JSON.stringify({ activity: row.dataset.name, calories: n, date: hc.dataset.date }) });
+                }
+              }
+              refreshRings();
+            }
             catch(e) { hc.classList.toggle('on',was); }
           });
         });
@@ -1028,6 +1057,7 @@
           <span class="eh-drag" style="cursor:grab;color:var(--t3);font-size:16px;padding:4px;user-select:none;">⠿</span>
           <input type="text" class="eh-icon" value="${h.icon || ''}" maxlength="4" style="width:40px;padding:8px 6px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:14px;text-align:center;">
           <input type="text" class="eh-name" value="${h.name.replace(/"/g, '&quot;')}" maxlength="40" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t1);font-size:14px;">
+          <button class="eh-burn" data-on="${h.track_calories ? 1 : 0}" title="Prompt for calories burnt when checked off" style="padding:8px 9px;border-radius:8px;border:1px solid var(--bd);background:${h.track_calories ? '#FF7A45' : 'var(--s2)'};color:${h.track_calories ? '#09090B' : 'var(--t3)'};cursor:pointer;font-size:14px;">🔥</button>
           <button class="eh-del" style="padding:8px 10px;border-radius:8px;border:none;background:var(--s3);color:var(--t2);cursor:pointer;font-size:14px;">🗑</button>
         </div>
       `).join('') || '<div style="color:var(--t3);font-size:12px;text-align:center;padding:12px;">No habits yet</div>';
@@ -1080,11 +1110,24 @@
     });
 
     document.getElementById('mEditHabRows').addEventListener('click', async e => {
-      const delBtn = e.target.closest('.eh-del'); if (!delBtn) return;
-      const row = delBtn.closest('.edit-hab-row');
-      const id = row.dataset.id;
-      if (!confirm('Delete this habit?')) return;
-      try { await api(`/api/habits/${id}`, { method: 'DELETE' }); row.remove(); refreshHabits(); } catch (e) {}
+      const delBtn = e.target.closest('.eh-del');
+      if (delBtn) {
+        const row = delBtn.closest('.edit-hab-row');
+        const id = row.dataset.id;
+        if (!confirm('Delete this habit?')) return;
+        try { await api(`/api/habits/${id}`, { method: 'DELETE' }); row.remove(); refreshHabits(); } catch (e) {}
+        return;
+      }
+      const burnBtn = e.target.closest('.eh-burn');
+      if (burnBtn) {
+        const row = burnBtn.closest('.edit-hab-row');
+        const id = row.dataset.id;
+        const newVal = burnBtn.dataset.on !== '1';
+        burnBtn.dataset.on = newVal ? '1' : '0';
+        burnBtn.style.background = newVal ? '#FF7A45' : 'var(--s2)';
+        burnBtn.style.color = newVal ? '#09090B' : 'var(--t3)';
+        try { await api(`/api/habits/${id}`, { method: 'PUT', body: JSON.stringify({ track_calories: newVal }) }); } catch (e) {}
+      }
     });
 
     document.getElementById('mEditHabAddBtn').addEventListener('click', async () => {
@@ -1387,17 +1430,30 @@
       } catch(e){ alert('Failed to save meal'); }
     });
 
-    // ── AI Meal Input (in rings header) ──
+    // ── AI Meal / Calories-Burnt Input (in rings header) ──
     const mAiMealInput = document.getElementById('mAiMealInput');
     const mAiMealBtn   = document.getElementById('mAiMealBtn');
+    let mAiMode = 'meal';
+    function setMobileAiMode(mode) {
+      mAiMode = mode;
+      const isMeal = mode === 'meal';
+      document.getElementById('mAiModeMeal').style.background = isMeal ? 'var(--green)' : 'var(--s2)';
+      document.getElementById('mAiModeMeal').style.color = isMeal ? '#09090B' : 'var(--t2)';
+      document.getElementById('mAiModeBurn').style.background = isMeal ? 'var(--s2)' : '#FF7A45';
+      document.getElementById('mAiModeBurn').style.color = isMeal ? 'var(--t2)' : '#09090B';
+      mAiMealInput.placeholder = isMeal ? 'I had 2 eggs and toast…' : 'Ran 5k, 30 min cycling…';
+    }
+    document.getElementById('mAiModeMeal').addEventListener('click', () => setMobileAiMode('meal'));
+    document.getElementById('mAiModeBurn').addEventListener('click', () => setMobileAiMode('burn'));
     async function submitMobileAIMeal() {
       const text = mAiMealInput.value.trim(); if (!text) return;
       mAiMealBtn.textContent = '⏳'; mAiMealBtn.disabled = true; mAiMealInput.disabled = true;
+      const endpoint = mAiMode === 'meal' ? '/api/meals/parse' : '/api/calories/parse';
       try {
-        await api('/api/meals/parse', { method: 'POST', body: JSON.stringify({ text }) });
+        await api(endpoint, { method: 'POST', body: JSON.stringify({ text }) });
         mAiMealInput.value = '';
         mAiMealBtn.textContent = '✅';
-        refreshRings(); refreshMeals();
+        refreshRings(); if (mAiMode === 'meal') refreshMeals();
         setTimeout(() => { mAiMealBtn.textContent = '↑'; }, 1500);
       } catch(e) {
         mAiMealBtn.textContent = '❌';

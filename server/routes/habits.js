@@ -121,9 +121,9 @@ router.put('/reorder', requireAuth, (req, res) => {
 });
 
 router.put('/:id', requireAuth, (req, res) => {
-  const { name, description, icon, is_active } = req.body;
-  db.prepare('UPDATE habits SET name = COALESCE(?, name), description = COALESCE(?, description), icon = COALESCE(?, icon), is_active = COALESCE(?, is_active) WHERE id = ?')
-    .run(name, description, icon, is_active !== undefined ? (is_active ? 1 : 0) : null, req.params.id);
+  const { name, description, icon, is_active, track_calories } = req.body;
+  db.prepare('UPDATE habits SET name = COALESCE(?, name), description = COALESCE(?, description), icon = COALESCE(?, icon), is_active = COALESCE(?, is_active), track_calories = COALESCE(?, track_calories) WHERE id = ?')
+    .run(name, description, icon, is_active !== undefined ? (is_active ? 1 : 0) : null, track_calories !== undefined ? (track_calories ? 1 : 0) : null, req.params.id);
   res.json({ ok: true });
 });
 

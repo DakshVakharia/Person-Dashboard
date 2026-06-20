@@ -207,6 +207,13 @@ export function initDB() {
       UNIQUE(card_id, period_key),
       FOREIGN KEY (card_id) REFERENCES custom_cards(id) ON DELETE CASCADE
     );
+    CREATE TABLE IF NOT EXISTS calorie_burns (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      activity TEXT NOT NULL,
+      calories REAL NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Seed default goals (generic placeholders — adjust to your own targets after first run)
@@ -215,6 +222,7 @@ export function initDB() {
     ['calorie_goal', '2000'],
     ['weight_unit', 'kg'],
     ['study_goal', '120'],  // 2 hours in minutes
+    ['calories_burnt_goal', '300'],
   ];
   const upsertGoal = db.prepare(
     'INSERT OR IGNORE INTO goals (key, value) VALUES (?, ?)'
@@ -244,6 +252,11 @@ export function initDB() {
   const ccCols = db.prepare("PRAGMA table_info(custom_cards)").all();
   if (!ccCols.some(c => c.name === 'quantities')) {
     db.exec('ALTER TABLE custom_cards ADD COLUMN quantities TEXT DEFAULT \'[]\'');
+  }
+
+  // Migration: add track_calories flag to habits (prompts for calories burnt when checked off)
+  if (!habitCols.some(c => c.name === 'track_calories')) {
+    db.exec('ALTER TABLE habits ADD COLUMN track_calories INTEGER DEFAULT 0');
   }
 
   console.log('Database initialised');
