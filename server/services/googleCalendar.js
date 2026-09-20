@@ -54,6 +54,43 @@ export async function listEvents(user, days = 7, date = null) {
   return res.data.items || [];
 }
 
+// Monday..Sunday of the current week, grouped by day — for the week-view modal
+export async function listEventsForWeek(user) {
+  const auth = getAuthClient(user);
+  const calendar = google.calendar({ version: 'v3', auth });
+
+  const today = new Date();
+  const dow = today.getDay() || 7; // Mon=1..Sun=7
+  const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  monday.setDate(today.getDate() - (dow - 1));
+  const nextMonday = new Date(monday);
+  nextMonday.setDate(monday.getDate() + 7);
+
+  const res = await calendar.events.list({
+    calendarId: process.env.DASHBOARD_CALENDAR_ID || user.calendar_id || 'primary',
+    timeMin: monday.toISOString(),
+    timeMax: nextMonday.toISOString(),
+    singleEvents: true,
+    orderBy: 'startTime',
+    maxResults: 250,
+  });
+  const events = res.data.items || [];
+
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+  }
+
+  const days = dates.map(dateStr => ({
+    date: dateStr,
+    events: events.filter(ev => (ev.start?.dateTime || ev.start?.date || '').slice(0, 10) === dateStr),
+  }));
+
+  return { week_start: dates[0], dates, days };
+}
+
 export async function createEvent(user, { title, start_time, end_time, description, all_day }) {
   const auth = getAuthClient(user);
   const calendar = google.calendar({ version: 'v3', auth });

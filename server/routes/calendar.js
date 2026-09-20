@@ -5,6 +5,15 @@ import { parseCalendarEvent } from '../services/calendarParser.js';
 
 const router = Router();
 
+router.get('/week', requireAuth, async (req, res) => {
+  try {
+    const week = await cal.listEventsForWeek(req.user);
+    res.json(week);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.get('/events', requireAuth, async (req, res) => {
   try {
     const days = parseInt(req.query.days || '7');

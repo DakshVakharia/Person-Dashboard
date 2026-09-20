@@ -77,7 +77,46 @@ app.use(passport.session());
 const allowedIpsStr = process.env.ALLOWED_IPS || '127.0.0.1,::1,::ffff:127.0.0.1';
 const ALLOWED_IPS = allowedIpsStr.split(',').map(ip => ip.trim());
 
+// When DASHBOARD_PASSWORD is set (hosted mode) a password login replaces the IP whitelist
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || '';
+let failedLogins = 0;
+
+if (DASHBOARD_PASSWORD) {
+  const loginPage = (err = '') => `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Login</title>
+<body style="margin:0;background:#0a0a0f;color:#eee;font-family:sans-serif;display:flex;height:100vh;align-items:center;justify-content:center">
+<form method="post" action="/login" style="display:flex;flex-direction:column;gap:10px;width:260px">
+<input type="password" name="password" placeholder="Password" autofocus style="padding:12px;border-radius:9px;border:1px solid #333;background:#16161d;color:#eee;font-size:15px">
+<button style="padding:12px;border-radius:9px;border:0;background:#2ee27d;font-weight:700;font-size:15px">Enter</button>
+<div style="color:#ff6b6b;font-size:13px;min-height:16px">${err}</div></form></body>`;
+
+  app.use(express.urlencoded({ extended: false }));
+  app.get('/login', (req, res) => res.send(loginPage()));
+  app.post('/login', async (req, res) => {
+    if (failedLogins > 0) await new Promise(r => setTimeout(r, Math.min(failedLogins, 10) * 500));
+    if (req.body.password === DASHBOARD_PASSWORD) {
+      failedLogins = 0;
+      if (!db.prepare('SELECT 1 FROM users LIMIT 1').get()) {
+        db.prepare(`INSERT OR IGNORE INTO users (google_id, email, name) VALUES ('local', 'local@dashboard', 'Dashboard User')`).run();
+      }
+      const user = db.prepare('SELECT * FROM users LIMIT 1').get();
+      return req.login(user, err => {
+        if (err) return res.status(500).send('Login error');
+        req.session.authed = true; // set after login(): passport regenerates the session
+        req.session.save(() => res.redirect('/'));
+      });
+    }
+    failedLogins++;
+    res.status(401).send(loginPage('Wrong password'));
+  });
+  app.use((req, res, next) => {
+    if (req.session.authed) return next();
+    if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Not authenticated' });
+    res.redirect('/login');
+  });
+}
+
 app.use((req, res, next) => {
+  if (DASHBOARD_PASSWORD) return next();
   const clientIp = req.ip || req.connection.remoteAddress;
   if (!ALLOWED_IPS.includes(clientIp)) {
     console.log(`[Security] Blocked unauthorized IP: ${clientIp}`);

@@ -58,7 +58,7 @@
       position: relative;
     }
     body::before {
-      content: "I'M TIRED.\AYOU'RE TIRED.\ANOBODY CARES.\AIT'S TIME TO\AWORK ON\AYOUR GOALS.";
+      content: "AWW YOU\ABROKE UP?\ANOBODY CARES.";
       white-space: pre;
       position: fixed;
       top: 50%;
@@ -278,6 +278,39 @@
       padding: 3px 7px;
       border-radius: 5px;
     }
+
+    /* Calendar week-view modal */
+    .cal-week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .cwd-col { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .cwd-hdr {
+      text-align: center;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--t2);
+      padding-bottom: 6px;
+      margin-bottom: 2px;
+      border-bottom: 1px solid var(--bd);
+    }
+    .cwd-hdr.today { color: var(--green); }
+    .cwd-events { display: flex; flex-direction: column; gap: 4px; max-height: 360px; overflow-y: auto; }
+    .cwe-item {
+      padding: 5px 6px;
+      border-radius: 7px;
+      background: var(--s2);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .cwe-item:hover { background: var(--s3); }
+    .cwe-time { font-size: 9px; color: var(--t3); font-family: 'DM Mono', monospace; }
+    .cwe-title {
+      font-size: 10.5px;
+      color: var(--t1);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cwd-empty { font-size: 9.5px; color: var(--t3); text-align: center; padding-top: 8px; opacity: 0.5; }
 
     /* ── Concentric rings ── */
     .conc-card { display: flex; align-items: center; gap: 28px; }
@@ -1061,7 +1094,7 @@
     <!-- ─── LEFT: Calendar + Agenda ─── -->
     <div class="col" id="colLeft">
       <div class="card" data-card-key="calendar">
-        <div class="lbl">Calendar</div>
+        <div class="lbl" id="calWeekOpenBtn" title="View week" style="cursor:pointer;">Calendar</div>
         <div class="cal-head">
           <span class="cal-month-title" id="calDayLabel">Monday, June 8</span>
           <div class="cal-navs">
@@ -1416,6 +1449,17 @@
             </div>
             <button class="run-log-btn" id="calEditSaveBtn">Save Changes</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Calendar Week modal -->
+      <div class="modal-backdrop" id="calWeekModal">
+        <div class="modal" style="width:700px;max-width:92vw;">
+          <div class="modal-header">
+            <span class="modal-title" id="calWeekModalTitle">Calendar · This Week</span>
+            <button class="modal-close" id="calWeekCloseBtn">&times;</button>
+          </div>
+          <div class="cal-week-grid" id="calWeekGrid"></div>
         </div>
       </div>
 
@@ -2375,6 +2419,23 @@
     });
 
     // ── Calendar: delete + edit via agenda list buttons ──
+    function openCalEditModal(ev) {
+      if (!ev) return;
+      document.getElementById('calEditId').value = ev.id;
+      document.getElementById('calEditTitle').value = ev.summary || '';
+      // Convert ISO to datetime-local value (YYYY-MM-DDTHH:MM)
+      const toLocal = iso => {
+        if (!iso) return '';
+        const d = new Date(iso);
+        const pad = n => String(n).padStart(2,'0');
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      };
+      document.getElementById('calEditStart').value = toLocal(ev.start?.dateTime || ev.start?.date);
+      document.getElementById('calEditEnd').value   = toLocal(ev.end?.dateTime   || ev.end?.date);
+      document.getElementById('calEditModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
     document.getElementById('agendaList').addEventListener('click', async e => {
       const delBtn  = e.target.closest('.ag-del-btn');
       const editBtn = e.target.closest('.ag-edit-btn');
@@ -2387,22 +2448,7 @@
         } catch(err) { delBtn.textContent = '×'; }
       }
       if (editBtn) {
-        const id = editBtn.dataset.id;
-        const ev = currentAgendaEvents.find(e => e.id === id);
-        if (!ev) return;
-        document.getElementById('calEditId').value = id;
-        document.getElementById('calEditTitle').value = ev.summary || '';
-        // Convert ISO to datetime-local value (YYYY-MM-DDTHH:MM)
-        const toLocal = iso => {
-          if (!iso) return '';
-          const d = new Date(iso);
-          const pad = n => String(n).padStart(2,'0');
-          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        };
-        document.getElementById('calEditStart').value = toLocal(ev.start?.dateTime || ev.start?.date);
-        document.getElementById('calEditEnd').value   = toLocal(ev.end?.dateTime   || ev.end?.date);
-        document.getElementById('calEditModal').classList.add('open');
-        document.body.style.overflow = 'hidden';
+        openCalEditModal(currentAgendaEvents.find(e => e.id === editBtn.dataset.id));
       }
     });
 
@@ -2426,8 +2472,58 @@
         });
         calEditModal.classList.remove('open'); document.body.style.overflow = '';
         refreshAgenda();
+        if (document.getElementById('calWeekModal').classList.contains('open')) refreshCalWeek();
       } catch(err) {}
       calEditSaveBtn.disabled = false; calEditSaveBtn.textContent = 'Save Changes';
+    });
+
+    // ── Calendar Week modal ──
+    const calWeekModal    = document.getElementById('calWeekModal');
+    const calWeekOpenBtn  = document.getElementById('calWeekOpenBtn');
+    const calWeekCloseBtn = document.getElementById('calWeekCloseBtn');
+    calWeekOpenBtn.addEventListener('click', () => { calWeekModal.classList.add('open'); document.body.style.overflow = 'hidden'; refreshCalWeek(); });
+    calWeekCloseBtn.addEventListener('click', () => { calWeekModal.classList.remove('open'); document.body.style.overflow = ''; });
+    calWeekModal.addEventListener('click', e => { if (e.target === calWeekModal) { calWeekModal.classList.remove('open'); document.body.style.overflow = ''; } });
+
+    let weekEventsById = {};
+    function renderCalWeekModal(week) {
+      const todayD = calDateStr(new Date());
+      document.getElementById('calWeekModalTitle').textContent =
+        'Calendar · ' + new Date(week.week_start + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) + ' – ' +
+        new Date(week.dates[6] + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
+      weekEventsById = {};
+      const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      document.getElementById('calWeekGrid').innerHTML = week.days.map((day, i) => {
+        day.events.forEach(ev => { weekEventsById[ev.id] = ev; });
+        const dNum = new Date(day.date + 'T00:00:00').getDate();
+        const evHtml = day.events.length
+          ? day.events.map(ev => {
+              const time = ev.start?.dateTime
+                ? new Date(ev.start.dateTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+                : 'All day';
+              return `<div class="cwe-item" data-ev-id="${ev.id}">
+                <div class="cwe-time">${time}</div>
+                <div class="cwe-title">${ev.summary || 'Untitled event'}</div>
+              </div>`;
+            }).join('')
+          : `<div class="cwd-empty">—</div>`;
+        return `<div class="cwd-col">
+          <div class="cwd-hdr ${day.date === todayD ? 'today' : ''}">${dayLabels[i]} ${dNum}</div>
+          <div class="cwd-events">${evHtml}</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function refreshCalWeek() {
+      try { renderCalWeekModal(await api('/api/calendar/week')); }
+      catch (e) {}
+    }
+
+    document.getElementById('calWeekGrid').addEventListener('click', e => {
+      const item = e.target.closest('.cwe-item');
+      if (!item) return;
+      openCalEditModal(weekEventsById[item.dataset.evId]);
     });
 
     // ── Add Meal modal ──
